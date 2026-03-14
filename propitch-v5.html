@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProPitch Scout — Pro Soccer Database</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #06080a;
+  --surface: #0d1117;
+  --card: #131920;
+  --lift: #192028;
+  --border: rgba(255,255,255,0.06);
+  --border-hi: rgba(255,255,255,0.12);
+  --text: #dde6ee;
+  --muted: #4a5a66;
+  --soft: #7a909e;
+  --accent: #00d4ff;
+  --accent-dim: #00b0d4;
+  --accent-glow: rgba(0,212,255,0.08);
+  --gold: #ffc840;
+  --green: #3ddc84;
+  --warn: #ff8c42;
+  --t1: #ffd700; --t1g: rgba(255,215,0,0.1);
+  --t2: #00cfff; --t2g: rgba(0,207,255,0.1);
+  --t3: #ff7043; --t3g: rgba(255,112,67,0.1);
+  --t4: #ab82ff; --t4g: rgba(171,130,255,0.1);
+  --t5: #ff6bae; --t5g: rgba(255,107,174,0.1);
+  --r: 5px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 120% 50% at 50% -10%,rgba(0,212,255,0.04),transparent 60%);pointer-events:none;z-index:0;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:600;height:54px;display:flex;align-items:center;gap:1rem;padding:0 1.5rem;background:rgba(6,8,10,0.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.35rem;letter-spacing:1px;color:var(--accent);white-space:nowrap;text-shadow:0 0 30px rgba(0,212,255,0.3);}
+.logo em{font-style:normal;color:var(--text);}
+.vr{width:1px;height:22px;background:var(--border);}
+.nav-tabs{display:flex;gap:2px;flex:1;}
+.ntab{background:none;border:none;padding:0.28rem 0.75rem;font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:500;color:var(--muted);cursor:pointer;border-radius:4px;transition:all .15s;white-space:nowrap;}
+.ntab:hover{color:var(--text);background:rgba(255,255,255,0.04);}
+.ntab.on{color:var(--accent);background:var(--accent-glow);}
+.nav-right{display:flex;align-items:center;gap:0.6rem;margin-left:auto;}
+.role-tag{font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:2px;padding:.18rem .55rem;border-radius:20px;text-transform:uppercase;}
+.role-scout{background:rgba(0,212,255,0.1);color:var(--accent);border:1px solid rgba(0,212,255,0.2);}
+.role-player{background:rgba(61,220,132,0.1);color:var(--green);border:1px solid rgba(61,220,132,0.2);}
+.role-admin{background:rgba(255,200,64,0.1);color:var(--gold);border:1px solid rgba(255,200,64,0.25);}
+.role-agent{background:rgba(61,220,132,0.1);color:#3ddc84;border:1px solid rgba(61,220,132,0.25);}
+.switch-btn{background:var(--lift);border:1px solid var(--border-hi);color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.75rem;padding:.28rem .75rem;border-radius:4px;cursor:pointer;transition:all .15s;}
+.switch-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+/* PAGES */
+.page{display:none;}
+.page.on{display:block;}
+
+/* ── HOME ── */
+.hero{max-width:960px;margin:0 auto;padding:4.5rem 2rem 2rem;text-align:center;position:relative;z-index:1;}
+.eyebrow{display:inline-flex;align-items:center;gap:.4rem;font-family:'JetBrains Mono',monospace;font-size:.65rem;letter-spacing:3px;color:var(--accent);border:1px solid rgba(0,212,255,0.2);padding:.25rem .75rem;border-radius:20px;margin-bottom:1.5rem;background:var(--accent-glow);}
+.hero h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(2.6rem,7vw,5.5rem);line-height:.95;letter-spacing:-1px;margin-bottom:1.1rem;}
+.hero h1 .hl{color:var(--accent);}
+.hero-sub{color:var(--soft);font-size:.95rem;line-height:1.7;max-width:480px;margin:0 auto 2rem;}
+.cta-row{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;}
+.btn{font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;letter-spacing:1.5px;text-transform:uppercase;padding:.65rem 1.6rem;border-radius:var(--r);cursor:pointer;transition:all .18s;border:none;}
+.btn-p{background:var(--accent);color:#06080a;}
+.btn-p:hover{background:var(--accent-dim);transform:translateY(-1px);box-shadow:0 8px 20px rgba(0,212,255,.2);}
+.btn-s{background:transparent;color:var(--text);border:1px solid var(--border-hi);}
+.btn-s:hover{border-color:var(--accent);color:var(--accent);}
+
+/* MATRIX */
+.matrix-wrap{max-width:860px;margin:3rem auto 0;overflow-x:auto;}
+.matrix{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.matrix th,.matrix td{padding:.6rem .8rem;text-align:center;font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:1px;}
+.matrix th{background:var(--lift);border-bottom:1px solid var(--border);color:var(--muted);}
+.matrix th:first-child,.matrix td:first-child{text-align:left;color:var(--text);font-family:'Syne',sans-serif;font-size:.8rem;letter-spacing:.5px;font-weight:700;}
+.matrix tr:not(:last-child) td{border-bottom:1px solid var(--border);}
+.matrix tr:hover td{background:rgba(255,255,255,.015);}
+.cell-y{color:var(--green);font-size:.8rem;}
+.cell-n{color:var(--border-hi);font-size:.7rem;}
+
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--surface);margin-top:3rem;}
+.sbar-item{padding:1.3rem;text-align:center;border-right:1px solid var(--border);}
+.sbar-item:last-child{border-right:none;}
+.sbar-n{font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--accent);line-height:1;}
+.sbar-l{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-top:.25rem;}
+
+/* ── SCOUT PORTAL ── */
+.scout-wrap{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 54px);}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:1.2rem .9rem;position:sticky;top:54px;height:calc(100vh - 54px);overflow-y:auto;}
+.sb-group{margin-bottom:1.6rem;}
+.sb-label{font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:.6rem;padding-bottom:.45rem;border-bottom:1px solid var(--border);}
+.sb-btn{display:block;width:100%;text-align:left;background:none;border:none;padding:.32rem .55rem;font-family:'DM Sans',sans-serif;font-size:.8rem;color:var(--muted);cursor:pointer;border-radius:4px;transition:all .14s;margin-bottom:1px;display:flex;justify-content:space-between;align-items:center;}
+.sb-btn:hover{color:var(--text);background:rgba(255,255,255,.04);}
+.sb-btn.on{color:var(--accent);background:var(--accent-glow);}
+.sb-count{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--muted);}
+
+.scout-main{padding:1.4rem;}
+.report-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem;margin-bottom:1.2rem;}
+.report-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem;}
+.report-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;}
+.report-dt{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--muted);}
+.report-notice{background:rgba(255,200,64,.05);border:1px solid rgba(255,200,64,.15);border-radius:4px;padding:.7rem .9rem;margin-bottom:.8rem;font-size:.78rem;color:var(--soft);line-height:1.5;}
+.report-notice b{color:var(--gold);}
+.report-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;}
+.rg-item{background:var(--lift);border-radius:4px;padding:.7rem;}
+.rg-lbl{font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:.25rem;}
+.rg-val{font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;color:var(--accent);}
+.rg-sub{font-size:.7rem;color:var(--soft);margin-top:.1rem;}
+
+.toolbar{display:flex;align-items:center;gap:.6rem;margin-bottom:1.2rem;flex-wrap:wrap;}
+.search-box{position:relative;flex:1;min-width:160px;}
+.search-box input{width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:.45rem .75rem .45rem 2rem;font-family:'DM Sans',sans-serif;font-size:.82rem;border-radius:var(--r);outline:none;transition:border-color .15s;}
+.search-box input:focus{border-color:var(--border-hi);}
+.search-box input::placeholder{color:var(--muted);}
+.search-icon{position:absolute;left:.65rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.8rem;pointer-events:none;}
+.tb-select{background:var(--card);border:1px solid var(--border);color:var(--text);padding:.45rem .7rem;font-family:'DM Sans',sans-serif;font-size:.8rem;border-radius:var(--r);outline:none;-webkit-appearance:none;cursor:pointer;}
+.tb-select option{background:var(--card);}
+.tb-count{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--muted);white-space:nowrap;}
+
+/* PLAYER CARDS */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:.75rem;}
+.pcard{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .18s;position:relative;}
+.pcard:hover{transform:translateY(-2px);border-color:var(--border-hi);box-shadow:0 8px 24px rgba(0,0,0,.3);}
+.pcard-stripe{height:3px;}
+.s-t1{background:linear-gradient(90deg,var(--t1),transparent);}
+.s-t2{background:linear-gradient(90deg,var(--t2),transparent);}
+.s-t3{background:linear-gradient(90deg,var(--t3),transparent);}
+.s-t4{background:linear-gradient(90deg,var(--t4),transparent);}
+.s-t5{background:linear-gradient(90deg,var(--t5),transparent);}
+.pcard-body{padding:.9rem;}
+.pcard-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.7rem;}
+.avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:#000;flex-shrink:0;}
+.a-t1{background:var(--t1)} .a-t2{background:var(--t2)} .a-t3{background:var(--t3)}
+.a-t4{background:var(--t4)} .a-t5{background:var(--t5);color:#fff}
+.tier-pill{font-family:'JetBrains Mono',monospace;font-size:.55rem;letter-spacing:1.5px;padding:.14rem .45rem;border-radius:20px;text-transform:uppercase;}
+.p-t1{background:var(--t1g);color:var(--t1);border:1px solid rgba(255,215,0,.2);}
+.p-t2{background:var(--t2g);color:var(--t2);border:1px solid rgba(0,207,255,.2);}
+.p-t3{background:var(--t3g);color:var(--t3);border:1px solid rgba(255,112,67,.2);}
+.p-t4{background:var(--t4g);color:var(--t4);border:1px solid rgba(171,130,255,.2);}
+.p-t5{background:var(--t5g);color:var(--t5);border:1px solid rgba(255,107,174,.2);}
+.admin-override-badge{font-family:'JetBrains Mono',monospace;font-size:.52rem;letter-spacing:1px;padding:.1rem .4rem;border-radius:3px;background:rgba(255,200,64,.1);color:var(--gold);border:1px solid rgba(255,200,64,.2);display:inline-block;margin-top:.2rem;}
+.pcard-name{font-family:'Syne',sans-serif;font-weight:700;font-size:.98rem;}
+.pcard-meta{font-size:.72rem;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:.08rem;}
+.pcard-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem;margin:.7rem 0;}
+.pcs{text-align:center;background:var(--lift);border-radius:3px;padding:.35rem;}
+.pcs-v{font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;line-height:1;}
+.pcs-l{font-family:'JetBrains Mono',monospace;font-size:.54rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:.1rem;}
+.score-row{display:flex;justify-content:space-between;margin-bottom:.25rem;}
+.score-lbl,.score-val{font-family:'JetBrains Mono',monospace;font-size:.64rem;color:var(--muted);}
+.score-track{height:2px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;}
+.score-fill{height:100%;border-radius:2px;}
+.sf-t1{background:var(--t1)} .sf-t2{background:var(--t2)} .sf-t3{background:var(--t3)} .sf-t4{background:var(--t4)} .sf-t5{background:var(--t5)}
+.pcard-foot{display:flex;gap:.4rem;padding:.65rem .9rem;border-top:1px solid var(--border);background:rgba(0,0,0,.12);}
+.foot-btn{flex:1;padding:.35rem;background:var(--lift);border:1px solid var(--border);color:var(--soft);font-family:'DM Sans',sans-serif;font-size:.72rem;border-radius:3px;cursor:pointer;transition:all .14s;text-align:center;}
+.foot-btn:hover{border-color:var(--accent);color:var(--accent);}
+.foot-btn.saved{background:rgba(0,212,255,.07);border-color:rgba(0,212,255,.25);color:var(--accent);}
+.foot-btn.interested{background:rgba(61,220,132,.07);border-color:rgba(61,220,132,.25);color:var(--green);}
+
+/* ── UPLOAD (PLAYER) ── */
+.upload-wrap{max-width:660px;margin:0 auto;padding:2rem 1.5rem;}
+.upload-hdr{margin-bottom:1.8rem;}
+.upload-hdr h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.9rem;letter-spacing:-.5px;margin-bottom:.3rem;}
+.upload-hdr p{color:var(--soft);font-size:.85rem;line-height:1.6;}
+.pricing-cards{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:.9rem;}
+.pc{background:var(--card);border:2px solid var(--border);border-radius:var(--r);padding:1rem;cursor:pointer;transition:all .18s;text-align:center;}
+.pc:hover,.pc.sel{border-color:var(--accent);background:var(--accent-glow);}
+.pc-tag{font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:2px;color:var(--accent);margin-bottom:.4rem;}
+.pc-price{font-family:'Syne',sans-serif;font-weight:800;font-size:1.9rem;line-height:1;}
+.pc-price sub{font-size:.75rem;font-weight:400;font-family:'DM Sans',sans-serif;color:var(--muted);}
+.pc-dur{font-size:.75rem;color:var(--muted);margin-top:.15rem;}
+.pc-total{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--soft);margin-top:.2rem;}
+.save-chip{display:inline-block;background:var(--accent);color:#06080a;font-family:'JetBrains Mono',monospace;font-size:.58rem;font-weight:700;letter-spacing:1px;padding:.1rem .4rem;border-radius:3px;margin-top:.25rem;}
+.fblock{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.2rem;margin-bottom:.75rem;}
+.fblock-title{font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:1rem;padding-bottom:.55rem;border-bottom:1px solid var(--border);}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-bottom:.65rem;}
+.frow.f3{grid-template-columns:1fr 1fr 1fr;}
+.frow.f1{grid-template-columns:1fr;}
+.fg{display:flex;flex-direction:column;gap:.25rem;}
+.fl{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;}
+.fi,.fs,.fta{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:.48rem .7rem;font-family:'DM Sans',sans-serif;font-size:.85rem;border-radius:4px;outline:none;transition:border-color .15s;-webkit-appearance:none;}
+.fi:focus,.fs:focus,.fta:focus{border-color:var(--border-hi);}
+.fi::placeholder,.fta::placeholder{color:var(--muted);}
+.fs option{background:var(--card);}
+.fta{resize:vertical;min-height:72px;}
+.upload-zone{border:2px dashed var(--border);border-radius:var(--r);padding:1.4rem;text-align:center;cursor:pointer;transition:all .18s;}
+.upload-zone:hover{border-color:var(--accent);background:var(--accent-glow);}
+.uz-icon{font-size:1.6rem;color:var(--muted);margin-bottom:.35rem;}
+.uz-txt{font-size:.78rem;color:var(--muted);line-height:1.5;}
+.uz-txt b{color:var(--accent);}
+
+/* LIVE RANK */
+.live-rank{background:rgba(0,212,255,.03);border:1px solid rgba(0,212,255,.12);border-radius:var(--r);padding:1rem;margin-bottom:.75rem;display:none;}
+.live-rank.show{display:block;}
+.lr-header{display:flex;align-items:center;gap:.5rem;font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:.85rem;}
+.pulse{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.8)}}
+.lr-main{display:flex;align-items:flex-start;gap:1rem;margin-bottom:.75rem;}
+.lr-tier-big{font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;line-height:1.1;}
+.lr-score-txt{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--soft);margin-top:.2rem;}
+.lr-reasoning{font-size:.78rem;color:var(--soft);line-height:1.5;background:var(--lift);padding:.6rem .8rem;border-radius:4px;margin-bottom:.7rem;}
+.lr-reasoning b{color:var(--text);}
+.lr-leagues{display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.7rem;}
+.lr-league{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:1px;padding:.16rem .5rem;border-radius:3px;text-transform:uppercase;}
+.lr-league.vis{color:var(--green);border:1px solid rgba(61,220,132,.25);background:rgba(61,220,132,.07);}
+.lr-league.hid{color:var(--muted);border:1px solid var(--border);background:transparent;opacity:.5;}
+.lr-factors{display:grid;grid-template-columns:1fr 1fr;gap:.3rem;}
+.lr-factor{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--muted);background:var(--lift);padding:.28rem .55rem;border-radius:3px;}
+.lr-factor span{color:var(--text);}
+.submit-btn{width:100%;background:var(--accent);color:#06080a;border:none;padding:.85rem;font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;letter-spacing:2px;text-transform:uppercase;border-radius:var(--r);cursor:pointer;transition:all .18s;margin-top:.4rem;}
+.submit-btn:hover{background:var(--accent-dim);transform:translateY(-1px);}
+.small-note{text-align:center;font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--muted);margin-top:.6rem;line-height:1.5;}
+
+/* ── ADMIN ── */
+.admin-wrap{max-width:1100px;margin:0 auto;padding:1.5rem;}
+.admin-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;}
+.admin-hdr h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;}
+.admin-queue{display:flex;flex-direction:column;gap:.6rem;}
+.aq-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.aq-top{display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:1rem;padding:.9rem 1.1rem;}
+.aq-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:.95rem;color:#000;flex-shrink:0;background:var(--soft);}
+.aq-info{}
+.aq-name{font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;}
+.aq-meta{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--muted);margin-top:.05rem;}
+.aq-algo-tier{text-align:center;}
+.aq-algo-label{font-family:'JetBrains Mono',monospace;font-size:.55rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;}
+.aq-algo-val{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;line-height:1.1;}
+.aq-actions{display:flex;flex-direction:column;gap:.35rem;min-width:160px;}
+.aq-select{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:.35rem .6rem;font-family:'JetBrains Mono',monospace;font-size:.7rem;border-radius:4px;outline:none;-webkit-appearance:none;cursor:pointer;width:100%;}
+.aq-select option{background:var(--card);}
+.aq-approve-btn{background:var(--green);color:#06080a;border:none;padding:.35rem .6rem;font-family:'Syne',sans-serif;font-weight:700;font-size:.72rem;letter-spacing:1px;border-radius:4px;cursor:pointer;transition:all .15s;}
+.aq-approve-btn:hover{opacity:.85;}
+.aq-expand-btn{background:none;border:none;color:var(--muted);font-size:.75rem;cursor:pointer;padding:.35rem .6rem;border-top:1px solid var(--border);text-align:left;font-family:'DM Sans',sans-serif;transition:color .14s;width:100%;}
+.aq-expand-btn:hover{color:var(--text);}
+.aq-detail{padding:.8rem 1.1rem;border-top:1px solid var(--border);background:var(--surface);display:none;}
+.aq-detail.open{display:block;}
+.aq-detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.6rem;margin-bottom:.7rem;}
+.aq-dstat{background:var(--card);border-radius:4px;padding:.5rem .7rem;}
+.aq-dstat-l{font-family:'JetBrains Mono',monospace;font-size:.55rem;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;}
+.aq-dstat-v{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-top:.1rem;}
+.algo-reasoning-box{background:rgba(0,212,255,.04);border:1px solid rgba(0,212,255,.12);border-radius:4px;padding:.7rem .9rem;font-size:.78rem;color:var(--soft);line-height:1.6;}
+.algo-reasoning-box b{color:var(--accent);}
+.approved-badge{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:1.5px;padding:.15rem .5rem;border-radius:20px;background:rgba(61,220,132,.1);color:var(--green);border:1px solid rgba(61,220,132,.25);}
+
+/* ── STATUS ── */
+.status-wrap{max-width:640px;margin:0 auto;padding:2rem 1.5rem;}
+.status-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;margin-bottom:.8rem;}
+.st-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.1rem;}
+.st-name{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-.5px;}
+.st-sub{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--muted);margin-top:.15rem;}
+.st-tier-block{text-align:right;}
+.st-tier-num{font-family:'Syne',sans-serif;font-weight:800;font-size:2.2rem;line-height:1;}
+.st-tier-lbl{font-family:'JetBrains Mono',monospace;font-size:.55rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;}
+.st-sub-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:.9rem;}
+.sub-badge{display:inline-flex;align-items:center;gap:.35rem;font-family:'JetBrains Mono',monospace;font-size:.65rem;letter-spacing:1px;padding:.2rem .65rem;border-radius:20px;}
+.sub-on{background:rgba(61,220,132,.1);color:var(--green);border:1px solid rgba(61,220,132,.25);}
+.sub-dot{width:5px;height:5px;border-radius:50%;background:currentColor;animation:pulse 1.4s infinite;}
+.sub-exp{font-family:'JetBrains Mono',monospace;font-size:.64rem;color:var(--muted);}
+.vis-leagues{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.6rem;}
+.vl-pill{font-family:'JetBrains Mono',monospace;font-size:.63rem;letter-spacing:1px;padding:.22rem .6rem;border-radius:4px;text-transform:uppercase;border:1px solid var(--border);color:var(--muted);background:var(--lift);}
+.vl-pill.vis{color:var(--green);border-color:rgba(61,220,132,.25);background:rgba(61,220,132,.07);}
+.notif-list{display:flex;flex-direction:column;gap:.5rem;}
+.notif{display:flex;align-items:flex-start;gap:.7rem;background:var(--lift);border-radius:4px;padding:.75rem;border-left:3px solid transparent;}
+.notif.ni{border-left-color:var(--green);}
+.notif-icon{font-size:1rem;flex-shrink:0;margin-top:.1rem;}
+.notif-body{flex:1;}
+.notif-ttl{font-size:.83rem;font-weight:600;margin-bottom:.08rem;}
+.notif-desc{font-size:.74rem;color:var(--muted);line-height:1.45;}
+.notif-time{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--muted);margin-top:.25rem;}
+.notif-new-tag{font-family:'JetBrains Mono',monospace;font-size:.55rem;letter-spacing:1px;background:rgba(0,212,255,.12);color:var(--accent);padding:.08rem .35rem;border-radius:20px;align-self:flex-start;flex-shrink:0;}
+
+/* MODAL */
+.overlay{display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.8);backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:1rem;}
+.overlay.open{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border-hi);border-radius:8px;width:100%;max-width:520px;max-height:87vh;overflow-y:auto;position:relative;animation:mIn .2s ease;}
+@keyframes mIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.m-stripe{height:4px;border-radius:8px 8px 0 0;}
+.m-body{padding:1.4rem;}
+.m-close{position:absolute;top:.85rem;right:1rem;background:none;border:none;color:var(--muted);font-size:.95rem;cursor:pointer;}
+.m-close:hover{color:var(--text);}
+.m-head{display:flex;align-items:center;gap:.85rem;margin-bottom:1.1rem;}
+.m-avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;color:#000;flex-shrink:0;}
+.m-name{font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;letter-spacing:-.3px;}
+.m-sub{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--muted);margin-top:.1rem;}
+.m-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem;margin-bottom:1rem;}
+.m-stat{background:var(--lift);border-radius:4px;padding:.65rem;text-align:center;border:1px solid var(--border);}
+.m-stat-v{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;line-height:1;}
+.m-stat-l{font-family:'JetBrains Mono',monospace;font-size:.55rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:.15rem;}
+.mbars{display:flex;flex-direction:column;gap:.45rem;margin-bottom:1rem;}
+.mbar{display:grid;grid-template-columns:72px 1fr 36px;align-items:center;gap:.5rem;}
+.mbar-l{font-family:'JetBrains Mono',monospace;font-size:.63rem;color:var(--muted);}
+.mbar-track{height:3px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;}
+.mbar-fill{height:100%;border-radius:2px;}
+.mbar-v{font-family:'JetBrains Mono',monospace;font-size:.63rem;text-align:right;}
+.m-vis-block{background:var(--lift);border-radius:4px;padding:.7rem;margin-bottom:1rem;}
+.m-vis-lbl{font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:.4rem;}
+.m-leagues{display:flex;flex-wrap:wrap;gap:.3rem;}
+.ml-tag{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:1px;padding:.16rem .5rem;border-radius:3px;text-transform:uppercase;}
+.ml-y{color:var(--green);border:1px solid rgba(61,220,132,.25);background:rgba(61,220,132,.07);}
+.ml-n{color:var(--muted);border:1px solid var(--border);opacity:.45;}
+.m-algo-box{background:rgba(0,212,255,.03);border:1px solid rgba(0,212,255,.1);border-radius:4px;padding:.7rem .85rem;margin-bottom:1rem;font-size:.76rem;color:var(--soft);line-height:1.55;}
+.m-algo-box b{color:var(--accent);}
+.msg-thread{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:.7rem;max-height:180px;overflow-y:auto;margin-bottom:.65rem;display:none;}
+.msg-thread.show{display:block;}
+.msg-item{margin-bottom:.5rem;}
+.msg-from{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--muted);margin-bottom:.1rem;}
+.msg-bubble{display:inline-block;max-width:88%;padding:.45rem .65rem;border-radius:6px;font-size:.8rem;line-height:1.4;}
+.msg-from-team{background:rgba(0,212,255,.08);color:var(--text);border:1px solid rgba(0,212,255,.15);}
+.msg-row{display:flex;gap:.4rem;margin-bottom:.65rem;}
+.msg-input{flex:1;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:.42rem .65rem;font-family:'DM Sans',sans-serif;font-size:.8rem;border-radius:4px;outline:none;transition:border-color .14s;}
+.msg-input:focus{border-color:var(--accent);}
+.msg-input::placeholder{color:var(--muted);}
+.msg-send{background:rgba(0,212,255,.1);color:var(--accent);border:1px solid rgba(0,212,255,.2);padding:.42rem .9rem;font-family:'DM Sans',sans-serif;font-size:.78rem;border-radius:4px;cursor:pointer;transition:all .14s;}
+.msg-send:hover{background:rgba(0,212,255,.18);}
+.m-actions{display:flex;gap:.6rem;}
+.m-btn{flex:1;padding:.55rem;font-family:'Syne',sans-serif;font-weight:700;font-size:.76rem;letter-spacing:1.2px;text-transform:uppercase;border-radius:var(--r);cursor:pointer;transition:all .16s;border:none;}
+.m-btn-interest{background:rgba(61,220,132,.08);color:var(--green);border:1px solid rgba(61,220,132,.22);}
+.m-btn-interest:hover,.m-btn-interest.on{background:rgba(61,220,132,.15);}
+.m-btn-copy{background:var(--lift);color:var(--soft);border:1px solid var(--border);}
+.m-btn-copy:hover{border-color:var(--border-hi);color:var(--text);}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.3rem;right:1.3rem;z-index:9999;padding:.65rem 1.1rem;border-radius:var(--r);font-size:.8rem;font-weight:500;transform:translateY(60px);opacity:0;transition:all .28s;max-width:300px;pointer-events:none;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast-ok{background:var(--green);color:#06080a;}
+.toast-info{background:var(--surface);color:var(--text);border:1px solid var(--border-hi);}
+
+/* TIERS PAGE */
+.tiers-wrap{max-width:800px;margin:0 auto;padding:2rem 1.5rem;}
+.tiers-wrap h2{font-family:'Syne',sans-serif;font-weight:800;font-size:1.8rem;letter-spacing:-.5px;margin-bottom:.35rem;}
+.tiers-wrap .intro{color:var(--soft);font-size:.86rem;margin-bottom:2rem;line-height:1.6;}
+.tier-row{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem 1.3rem;margin-bottom:.75rem;border-left:4px solid transparent;}
+.tr-t1{border-left-color:var(--t1)} .tr-t2{border-left-color:var(--t2)} .tr-t3{border-left-color:var(--t3)} .tr-t4{border-left-color:var(--t4)} .tr-t5{border-left-color:var(--t5)}
+.tr-head{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;}
+.tr-main{}
+.tr-badge{font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:.3rem;}
+.tr-name{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;margin-bottom:.35rem;}
+.tr-desc{font-size:.8rem;color:var(--soft);line-height:1.5;}
+.tr-age-note{margin-top:.5rem;font-size:.76rem;color:var(--warn);font-family:'JetBrains Mono',monospace;line-height:1.4;}
+.tr-score{text-align:right;flex-shrink:0;}
+.tr-score-num{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;line-height:1;}
+.tr-score-lbl{font-family:'JetBrains Mono',monospace;font-size:.55rem;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;}
+.algo-factors-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:.65rem;margin-top:1.5rem;}
+.af-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:.9rem;}
+.af-label{font-family:'JetBrains Mono',monospace;font-size:.58rem;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:.3rem;}
+.af-pct{font-family:'Syne',sans-serif;font-weight:800;font-size:1.7rem;line-height:1;}
+.af-desc{font-size:.75rem;color:var(--soft);margin-top:.25rem;line-height:1.4;}
+.age-curve-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem 1.3rem;margin-top:1.5rem;}
+.age-curve-box h4{font-family:'Syne',sans-serif;font-weight:700;margin-bottom:.75rem;}
+.age-row{display:flex;align-items:center;gap:.8rem;margin-bottom:.4rem;font-size:.79rem;}
+.age-range{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--muted);width:60px;flex-shrink:0;}
+.age-bar-wrap{flex:1;height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;}
+.age-bar{height:100%;border-radius:3px;}
+.age-note{color:var(--soft);font-size:.73rem;flex-shrink:0;width:140px;}
+
+@media(max-width:700px){
+  .scout-wrap{grid-template-columns:1fr;}
+  .sidebar{position:static;height:auto;}
+  .frow{grid-template-columns:1fr;}
+  .frow.f3{grid-template-columns:1fr 1fr;}
+  .pricing-cards{grid-template-columns:1fr;}
+  .stats-bar{grid-template-columns:1fr 1fr;}
+  .report-grid{grid-template-columns:1fr 1fr;}
+  .aq-top{grid-template-columns:auto 1fr;grid-template-rows:auto auto;}
+  .aq-actions{flex-direction:row;min-width:auto;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Pro<em>Pitch</em></div>
+  <div class="vr"></div>
+  <div class="nav-tabs">
+    <button class="ntab on" onclick="gp('home')">Home</button>
+    <button class="ntab" onclick="gp('scout')">Scout Portal</button>
+    <button class="ntab" onclick="gp('upload')">Player Upload</button>
+    <button class="ntab" onclick="gp('admin')">Admin Review</button>
+    <button class="ntab" onclick="gp('status')">My Profile</button>
+    <button class="ntab" onclick="gp('tiers')">Tier System</button>
+    <button class="ntab" onclick="gp('agent')" style="color:#3ddc84">Agent Portal</button>
+  </div>
+  <div class="nav-right">
+    <div class="role-tag role-scout" id="role-badge">SCOUT VIEW</div>
+    <button class="switch-btn" onclick="cycleRole()">Switch Role ↓</button>
+  </div>
+</nav>
+
+<!-- ══════════════ HOME ══════════════ -->
+<div class="page on" id="page-home">
+  <div class="hero">
+    <div class="eyebrow">⚽ Professional Soccer Scouting Network</div>
+    <h1>The Right Player.<br><span class="hl">The Right League.</span></h1>
+    <p class="hero-sub">Every profile admin-reviewed and tiered. Teams see only the players that match their level. Players can't see each other — just the scouts who matter.</p>
+    <div class="cta-row">
+      <button class="btn btn-p" onclick="gp('upload')">Upload My Profile</button>
+      <button class="btn btn-s" onclick="gp('scout')">Scout Portal →</button>
+    </div>
+
+    <div class="matrix-wrap">
+      <table class="matrix">
+        <thead><tr>
+          <th>League</th>
+          <th style="color:var(--t1)">TIER 1</th>
+          <th style="color:var(--t2)">TIER 2</th>
+          <th style="color:var(--t3)">TIER 3</th>
+          <th style="color:var(--t4)">TIER 4</th>
+          <th style="color:var(--t5)">TIER 5</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>🏆 MLS</td><td><span class="cell-y">✓</span></td><td><span class="cell-y">✓</span></td><td class="cell-n">—</td><td class="cell-n">—</td><td class="cell-n">—</td></tr>
+          <tr><td>🥈 USL Championship</td><td><span class="cell-y">✓</span></td><td><span class="cell-y">✓</span></td><td><span class="cell-y">✓</span></td><td class="cell-n">—</td><td class="cell-n">—</td></tr>
+          <tr><td>⚡ USL League 1 / NISA</td><td class="cell-n">—</td><td><span class="cell-y">✓</span></td><td><span class="cell-y">✓</span></td><td><span class="cell-y">✓</span></td><td class="cell-n">—</td></tr>
+          <tr><td>🌱 USL League 2 / NPSL</td><td class="cell-n">—</td><td class="cell-n">—</td><td><span class="cell-y">✓</span></td><td><span class="cell-y">✓</span></td><td><span class="cell-y">✓</span></td></tr>
+          <tr><td>🏟 MISL (Indoor)</td><td class="cell-n">—</td><td><span class="cell-y">✓</span></td><td><span class="cell-y">✓</span></td><td><span class="cell-y">✓</span></td><td><span class="cell-y">✓</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="stats-bar">
+    <div class="sbar-item"><div class="sbar-n" id="home-cnt">0</div><div class="sbar-l">Active Profiles</div></div>
+    <div class="sbar-item"><div class="sbar-n">5</div><div class="sbar-l">Tier Levels</div></div>
+    <div class="sbar-item"><div class="sbar-n">5</div><div class="sbar-l">Leagues Scouting</div></div>
+    <div class="sbar-item"><div class="sbar-n">48</div><div class="sbar-l">Teams on Platform</div></div>
+  </div>
+</div>
+
+<!-- ══════════════ SCOUT PORTAL ══════════════ -->
+<div class="page" id="page-scout">
+  <div class="scout-wrap">
+    <aside class="sidebar">
+      <div class="sb-group">
+        <div class="sb-label">Tier</div>
+        <button class="sb-btn on" onclick="setTF('all',this)">All Tiers <span class="sb-count" id="sc-all">0</span></button>
+        <button class="sb-btn" onclick="setTF(1,this)" style="color:var(--t1)">T1 · MLS <span class="sb-count" id="sc-1">0</span></button>
+        <button class="sb-btn" onclick="setTF(2,this)" style="color:var(--t2)">T2 · USL Champ <span class="sb-count" id="sc-2">0</span></button>
+        <button class="sb-btn" onclick="setTF(3,this)" style="color:var(--t3)">T3 · USL L1 <span class="sb-count" id="sc-3">0</span></button>
+        <button class="sb-btn" onclick="setTF(4,this)" style="color:var(--t4)">T4 · USL L2/NPSL <span class="sb-count" id="sc-4">0</span></button>
+        <button class="sb-btn" onclick="setTF(5,this)" style="color:var(--t5)">T5 · MISL/Dev <span class="sb-count" id="sc-5">0</span></button>
+      </div>
+      <div class="sb-group">
+        <div class="sb-label">Position Group</div>
+        <button class="sb-btn on" onclick="setPF('all',this)">All Positions</button>
+        <button class="sb-btn" onclick="setPF('GK',this)">GK — Goalkeeper</button>
+        <button class="sb-btn" onclick="setPF('DEF',this)">DEF — Defenders</button>
+        <button class="sb-btn" onclick="setPF('MID',this)">MID — Midfielders</button>
+        <button class="sb-btn" onclick="setPF('FWD',this)">FWD — Forwards</button>
+      </div>
+      <div class="sb-group">
+        <div class="sb-label">My Lists</div>
+        <button class="sb-btn" onclick="setTF('saved',this)">⭐ Saved <span class="sb-count" id="sc-saved">0</span></button>
+        <button class="sb-btn" onclick="setTF('interest',this)">✅ Interest Sent <span class="sb-count" id="sc-interest">0</span></button>
+      </div>
+    </aside>
+    <main class="scout-main">
+      <!-- WEEKLY REPORT -->
+      <div class="report-box">
+        <div class="report-top">
+          <div class="report-title">📋 Weekly Signup Report</div>
+          <div class="report-dt" id="rpt-dt"></div>
+        </div>
+        <div class="report-notice"><b>🔒 Admin-Verified Only</b> — Every player displayed has been manually reviewed and tiered by the ProPitch team. Player profiles are never visible to other players.</div>
+        <div class="report-grid">
+          <div class="rg-item"><div class="rg-lbl">New This Week</div><div class="rg-val" id="rpt-new">0</div><div class="rg-sub">players added</div></div>
+          <div class="rg-item"><div class="rg-lbl">Top Position</div><div class="rg-val" id="rpt-pos">—</div><div class="rg-sub">most submissions</div></div>
+          <div class="rg-item"><div class="rg-lbl">Hot Tier</div><div class="rg-val" id="rpt-tier">—</div><div class="rg-sub">most new signups</div></div>
+        </div>
+      </div>
+      <!-- TOOLBAR -->
+      <div class="toolbar">
+        <div class="search-box"><span class="search-icon">🔍</span><input type="text" placeholder="Search name, club, nationality…" oninput="renderGrid()"></div>
+        <select class="tb-select" id="pos-sel" onchange="renderGrid()">
+          <option value="all">All Positions</option>
+          <option>GK</option><option>CB</option><option>LB</option><option>RB</option>
+          <option>CDM</option><option>CM</option><option>CAM</option>
+          <option>LW</option><option>RW</option><option>ST</option><option>CF</option>
+        </select>
+        <span class="tb-count" id="grid-count">0 players</span>
+      </div>
+      <div class="pgrid" id="scout-grid"></div>
+    </main>
+  </div>
+</div>
+
+<!-- ══════════════ PLAYER UPLOAD ══════════════ -->
+<div class="page" id="page-upload">
+  <div class="upload-wrap">
+    <div class="upload-hdr">
+      <h2>Submit Your Profile</h2>
+      <p>Complete the form below. After payment, our team reviews your CV and assigns your tier within 48 hours. You'll be visible to the right leagues automatically.</p>
+    </div>
+
+    <div class="fblock">
+      <div class="fblock-title">Choose Your Plan</div>
+      <div class="pricing-cards">
+        <div class="pc" id="pc-3mo" onclick="selPlan('3mo')">
+          <div class="pc-tag">3 MONTHS</div>
+          <div class="pc-price">$7.99<sub>/mo</sub></div>
+          <div class="pc-dur">Billed quarterly</div>
+          <div class="pc-total">$23.97 total</div>
+        </div>
+        <div class="pc sel" id="pc-1yr" onclick="selPlan('1yr')">
+          <div class="pc-tag">1 YEAR — BEST VALUE</div>
+          <div class="pc-price">$4.99<sub>/mo</sub></div>
+          <div class="pc-dur">Billed annually</div>
+          <div class="pc-total">$59.88 total</div>
+          <div class="save-chip">SAVE 38%</div>
+        </div>
+      </div>
+      <p style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--muted);line-height:1.5">⚠ When your subscription expires your profile is hidden from all teams. Renewing restores full visibility immediately.</p>
+    </div>
+
+    <div class="fblock">
+      <div class="fblock-title">Personal Information</div>
+      <div class="frow"><div class="fg"><label class="fl">First Name *</label><input class="fi" id="u-first" placeholder="Marcus" oninput="liveRank()"></div><div class="fg"><label class="fl">Last Name *</label><input class="fi" id="u-last" placeholder="Rodriguez" oninput="liveRank()"></div></div>
+      <div class="frow f3"><div class="fg"><label class="fl">Age *</label><input class="fi" type="number" id="u-age" placeholder="24" min="14" max="45" oninput="liveRank()"></div><div class="fg"><label class="fl">Nationality *</label><input class="fi" id="u-nation" placeholder="USA" oninput="liveRank()"></div><div class="fg"><label class="fl">Second Nationality</label><input class="fi" id="u-nation2" placeholder="Optional"></div></div>
+      <div class="frow"><div class="fg"><label class="fl">Email *</label><input class="fi" type="email" id="u-email" placeholder="you@email.com"></div><div class="fg"><label class="fl">Phone *</label><input class="fi" type="tel" id="u-phone" placeholder="+1 (555) 000-0000"></div></div>
+      <div class="frow"><div class="fg"><label class="fl">Preferred Language</label><select class="fs" id="u-language"><option value="English">English</option><option value="Spanish">Spanish</option><option value="Portuguese">Portuguese</option><option value="French">French</option><option value="Arabic">Arabic</option><option value="German">German</option><option value="Italian">Italian</option><option value="Dutch">Dutch</option><option value="Other">Other</option></select></div><div class="fg"><label class="fl">Country of Birth</label><input class="fi" id="u-birthcountry" placeholder="USA"></div></div>
+    </div>
+
+    <div class="fblock">
+      <div class="fblock-title">Work Authorization &amp; Eligibility</div>
+      <div class="frow">
+        <div class="fg"><label class="fl">Work Authorization Status *</label><select class="fs" id="u-visa" onchange="updateVisaFields()"><option value="">Select...</option><option value="citizen">US Citizen</option><option value="greencard">US Permanent Resident (Green Card)</option><option value="workpermit">International — Work Visa (can sign immediately)</option><option value="needsvisa">International — Visa Required (needs sponsorship)</option><option value="daca">DACA</option><option value="student">Student Visa (F-1) — limited work auth</option></select></div>
+        <div class="fg"><label class="fl">Passport Country</label><input class="fi" id="u-passport" placeholder="USA"></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="fl">Professional Status *</label><select class="fs" id="u-prostatus" onchange="liveRank()"><option value="">Select...</option><option value="pro">Currently Professional</option><option value="semipro">Semi-Professional</option><option value="amateur">Amateur</option><option value="college">College Player</option><option value="academy">Academy Player</option><option value="retired">Retired — Seeking Comeback</option></select></div>
+        <div class="fg"><label class="fl">College Eligibility</label><select class="fs" id="u-collegeelig"><option value="na">N/A — Not applicable</option><option value="yes">Yes — Maintaining college eligibility</option><option value="no">No — Already turned professional</option></select></div>
+      </div>
+      <div id="visa-note" style="display:none;background:rgba(255,200,64,0.08);border:1px solid rgba(255,200,64,0.25);border-radius:8px;padding:.75rem 1rem;margin-top:.5rem">
+        <div style="font-size:.78rem;color:var(--gold);font-weight:600">&#9888; Visa Sponsorship Required</div>
+        <div style="font-size:.72rem;color:var(--soft);margin-top:.2rem">Clubs at USL L2/NPSL level typically cannot sponsor work visas. Your profile will be flagged for admin review. MLS and USL Championship clubs may consider sponsorship for exceptional players.</div>
+      </div>
+    </div>
+
+    <div class="fblock">
+      <div class="fblock-title">Contract &amp; Availability</div>
+      <div class="frow f3">
+        <div class="fg"><label class="fl">Contract Status *</label><select class="fs" id="u-contract" onchange="updateContractFields()"><option value="">Select...</option><option value="freeagent">Free Agent</option><option value="undercontract">Under Contract</option><option value="outofcontract">Out of Contract</option><option value="trial">Seeking Trial</option></select></div>
+        <div class="fg" id="contract-expiry-wrap" style="display:none"><label class="fl">Contract Expiry</label><input class="fi" type="month" id="u-contractexpiry"></div>
+        <div class="fg" id="contract-salary-wrap" style="display:none"><label class="fl">Current Salary (optional)</label><input class="fi" id="u-salary" placeholder="Private — admin only"><p style="font-size:.58rem;color:var(--muted);margin:.2rem 0 0">Only visible to ProPitch admin. Never shown to scouts.</p></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="fl">What I'm Looking For *</label><select class="fs" id="u-lookingfor"><option value="">Select...</option><option value="fullpro">Full Professional Contract</option><option value="semipro">Part-time / Semi-pro Contract</option><option value="trial">Trial / Pre-season Opportunity</option><option value="nextpro">MLS Next Pro / Development Contract</option><option value="l2npsl">USL L2 / NPSL (Maintaining College Eligibility)</option><option value="indoor">Indoor / MISL Opportunity</option><option value="open">Open to All Opportunities</option></select><p class="fi-note" id="lookingfor-note" style="display:none;color:var(--t3);font-size:.65rem;margin-top:.3rem"></p></div>
+        <div class="fg"><label class="fl">Available From</label><input class="fi" type="month" id="u-available" placeholder="Immediate"></div>
+      </div>
+      <div class="frow f1">
+        <div class="fg">
+          <label class="fl">Player Statement <span style="color:var(--muted);font-weight:400">(280 chars max)</span></label>
+          <textarea class="fta" id="u-statement" maxlength="280" placeholder="Anything scouts should know — relocation availability, visa status, languages spoken. Be brief and honest. Admin reviews all submissions." oninput="updateCharCount(this)"></textarea>
+          <div style="text-align:right;font-size:.62rem;color:var(--muted);margin-top:.2rem"><span id="statement-count">0</span>/280</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fblock">
+      <div class="fblock-title">Photo & Verification</div>
+      <div class="frow">
+        <div class="fg"><label class="fl">Headshot * (Required)</label><div class="upload-zone" onclick="fakeUp('hs')"><div class="uz-icon" id="hs-ico">📸</div><div class="uz-txt" id="hs-txt">Click to upload<br><b>JPG or PNG, max 5MB</b></div></div></div>
+        <div class="fg"><label class="fl">Proof of ID (Recommended)</label><div class="upload-zone" onclick="fakeUp('id')"><div class="uz-icon" id="id-ico">🪪</div><div class="uz-txt" id="id-txt">Passport, Driver's License<br><b>or Govt. ID</b></div></div></div>
+      </div>
+      <p style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--muted);margin-top:.4rem">🔒 ID reviewed by ProPitch staff only. Never shared with teams.</p>
+    </div>
+
+    <div class="fblock">
+      <div class="fblock-title">Playing Career</div>
+      <div class="frow f3">
+        <div class="fg"><label class="fl">Position *</label><select class="fs" id="u-pos" onchange="updateStatFields()"><option value="">Select…</option><option>GK</option><option>CB</option><option>LB</option><option>RB</option><option>CDM</option><option>CM</option><option>CAM</option><option>LW</option><option>RW</option><option>ST</option><option>CF</option></select></div>
+        <div class="fg"><label class="fl">Dominant Foot</label><select class="fs" id="u-foot"><option value="">Select…</option><option>Right</option><option>Left</option><option>Both</option></select></div>
+        <div class="fg"><label class="fl">Height</label><input class="fi" id="u-height" placeholder="5'11&quot; or 180cm"></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="fl">Current / Last Club *</label><input class="fi" id="u-club" placeholder="FC Dallas" oninput="liveRank()"></div>
+        <div class="fg"><label class="fl">Years Playing Pro/Semi-Pro</label><input class="fi" type="number" id="u-years" placeholder="8" min="0" max="30" oninput="liveRank()"></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="fl">Highest Level Played *</label><select class="fs" id="u-level" onchange="liveRank()"><option value="">Select…</option><option value="5">Youth / College / Recreational</option><option value="4">USL League 2 / NPSL / MISL</option><option value="3">USL League 1 / NISA</option><option value="2">USL Championship</option><option value="1">MLS / MLS Next Pro / Top International</option></select></div>
+        <div class="fg"><label class="fl">International Caps</label><input class="fi" type="number" id="u-caps" placeholder="0" min="0" oninput="liveRank()"></div>
+      </div>
+      <div class="frow f1"><div class="fg"><label class="fl">Highlight Video URL (YouTube, Vimeo, Hudl)</label><input class="fi" id="u-video" placeholder="https://youtube.com/watch?v=..."></div></div>
+      <div class="frow f1"><div class="fg"><label class="fl">Career Bio (optional)</label><textarea class="fta" id="u-bio" placeholder="Notable clubs, achievements, brief career summary…"></textarea></div></div>
+    </div>
+
+    <div class="fblock" id="verif-contact-block" style="display:none">
+      <div class="fblock-title">Verification Contact <span style="color:var(--t3);font-size:.75rem;font-weight:400">— Required for USL L1 and below</span></div>
+      <p style="font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--muted);margin-bottom:.9rem;line-height:1.5">Provide a coach, director, or club administrator who can verify your playing history. This contact is for ProPitch admin use only — never shared with scouts.</p>
+      <div class="frow">
+        <div class="fg"><label class="fl">Contact Name *</label><input class="fi" id="u-verif-name" placeholder="Coach / Director name"></div>
+        <div class="fg"><label class="fl">Their Title / Role</label><input class="fi" id="u-verif-title" placeholder="Head Coach, Academy Director…"></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="fl">Phone Number *</label><input class="fi" type="tel" id="u-verif-phone" placeholder="+1 (555) 000-0000"></div>
+        <div class="fg"><label class="fl">Email Address</label><input class="fi" type="email" id="u-verif-email" placeholder="coach@club.com"></div>
+      </div>
+      <div class="frow f1"><div class="fg"><label class="fl">Relationship to You</label><select class="fs" id="u-verif-rel"><option value="">Select...</option><option>Current Head Coach</option><option>Former Head Coach</option><option>Academy Director</option><option>Club Administrator</option><option>Technical Director</option><option>Agent</option></select></div></div>
+    </div>
+
+    <div class="fblock" id="stats-block">
+      <div class="fblock-title">Last Season Stats</div>
+      <p style="font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--muted);margin-bottom:.9rem;line-height:1.5">Select your position above — fields adjust per position. All metrics are weighted by position in the algorithm.</p>
+
+      <!-- ALWAYS SHOWN: BASE STATS -->
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;color:var(--soft);text-transform:uppercase;margin:.2rem 0 .5rem">Base Stats (All Positions)</div>
+      <div class="frow f3">
+        <div class="fg"><label class="fl">Appearances *</label><input class="fi" type="number" id="u-apps" placeholder="28" min="0" oninput="liveRank()"></div>
+        <div class="fg"><label class="fl">Goals</label><input class="fi" type="number" id="u-goals" placeholder="0" min="0" oninput="liveRank()"></div>
+        <div class="fg"><label class="fl">Assists</label><input class="fi" type="number" id="u-assists" placeholder="0" min="0" oninput="liveRank()"></div>
+      </div>
+      <div class="frow f3">
+        <div class="fg"><label class="fl">Pass Accuracy %</label><input class="fi" type="number" id="u-pass" placeholder="78" min="0" max="100" oninput="liveRank()"></div>
+        <div class="fg"><label class="fl">Aerial Duels Won %</label><input class="fi" type="number" id="u-aerial" placeholder="52" min="0" max="100" oninput="liveRank()"></div>
+        <div class="fg"><label class="fl">Shots on Target %</label><input class="fi" type="number" id="u-sot" placeholder="38" min="0" max="100" oninput="liveRank()"></div>
+      </div>
+
+      <!-- GK STATS -->
+      <div id="stats-gk" style="display:none">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;color:var(--t1);text-transform:uppercase;margin:.9rem 0 .5rem">Goalkeeper Metrics (Primary)</div>
+        <div class="frow f3">
+          <div class="fg"><label class="fl">Save % ●●●●●</label><input class="fi" type="number" id="u-saves" placeholder="72" min="0" max="100" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Clean Sheet % ●●●●</label><input class="fi" type="number" id="u-cleansheets" placeholder="35" min="0" max="100" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Goals Prevented vs xG</label><input class="fi" type="number" id="u-goalsprevented" placeholder="3" min="-20" max="30" step="0.1" oninput="liveRank()"></div>
+        </div>
+        <div class="frow f3">
+          <div class="fg"><label class="fl">Distribution Acc % ●●●</label><input class="fi" type="number" id="u-distrib" placeholder="68" min="0" max="100" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Sweeper Actions P90</label><input class="fi" type="number" id="u-sweeper" placeholder="1.2" min="0" max="10" step="0.1" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">High Claim Success %</label><input class="fi" type="number" id="u-highclaims" placeholder="75" min="0" max="100" oninput="liveRank()"></div>
+        </div>
+      </div>
+
+      <!-- DEFENDER STATS -->
+      <div id="stats-def" style="display:none">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;color:var(--t4);text-transform:uppercase;margin:.9rem 0 .5rem">Defensive Metrics (Primary)</div>
+        <div class="frow f3">
+          <div class="fg"><label class="fl">Duels Won % ●●●●●</label><input class="fi" type="number" id="u-duels" placeholder="62" min="0" max="100" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Aerial Duels Won % ●●●●●</label><input class="fi" type="number" id="u-aerialdef" placeholder="65" min="0" max="100" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Interceptions P90 ●●●●</label><input class="fi" type="number" id="u-interceptions" placeholder="3.2" min="0" max="20" step="0.1" oninput="liveRank()"></div>
+        </div>
+        <div class="frow f3">
+          <div class="fg"><label class="fl">Clearances P90 ●●●●</label><input class="fi" type="number" id="u-clearances" placeholder="4.5" min="0" max="20" step="0.1" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Tackles Won % ●●●</label><input class="fi" type="number" id="u-tackles" placeholder="58" min="0" max="100" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Prog. Passes P90 ●●</label><input class="fi" type="number" id="u-progpasses" placeholder="3.0" min="0" max="20" step="0.1" oninput="liveRank()"></div>
+        </div>
+        <div class="frow">
+          <div class="fg"><label class="fl">Pressure Success % ●●</label><input class="fi" type="number" id="u-pressuresuccess" placeholder="28" min="0" max="100" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Dribble Success % ●</label><input class="fi" type="number" id="u-dribble" placeholder="42" min="0" max="100" oninput="liveRank()"></div>
+        </div>
+      </div>
+
+      <!-- CDM STATS -->
+      <div id="stats-cdm" style="display:none">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;color:var(--t2);text-transform:uppercase;margin:.9rem 0 .5rem">Defensive Midfielder Metrics (Primary)</div>
+        <div class="frow f3">
+          <div class="fg"><label class="fl">Duels Won % ●●●●●</label><input class="fi" type="number" id="u-duels" placeholder="58" min="0" max="100" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Interceptions P90 ●●●●●</label><input class="fi" type="number" id="u-interceptions" placeholder="3.0" min="0" max="20" step="0.1" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Tackles Won % ●●●●</label><input class="fi" type="number" id="u-tackles" placeholder="55" min="0" max="100" oninput="liveRank()"></div>
+        </div>
+        <div class="frow f3">
+          <div class="fg"><label class="fl">Prog. Passes P90 ●●●●</label><input class="fi" type="number" id="u-progpasses" placeholder="4.0" min="0" max="20" step="0.1" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Pressures Applied P90 ●●●</label><input class="fi" type="number" id="u-pressures" placeholder="5.5" min="0" max="30" step="0.1" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Press Intensity % ●●●</label><input class="fi" type="number" id="u-pressuresuccess" placeholder="30" min="0" max="100" oninput="liveRank()"></div>
+        </div>
+        <div class="frow f3">
+          <div class="fg"><label class="fl">Dribble Success % ●●</label><input class="fi" type="number" id="u-dribble" placeholder="48" min="0" max="100" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Sprint Distance P90 km ●●</label><input class="fi" type="number" id="u-sprintdist" placeholder="0.9" min="0" max="5" step="0.1" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Shots on Target % ●</label><input class="fi" type="number" id="u-sot" placeholder="25" min="0" max="100" oninput="liveRank()"></div>
+        </div>
+      </div>
+
+      <!-- CM STATS -->
+      <div id="stats-cm" style="display:none">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;color:var(--t2);text-transform:uppercase;margin:.9rem 0 .5rem">Central Midfielder Metrics</div>
+        <div class="frow f3">
+          <div class="fg"><label class="fl">Prog. Passes P90 ●●●●●</label><input class="fi" type="number" id="u-progpasses" placeholder="5.0" min="0" max="20" step="0.1" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Key Passes P90 ●●●●</label><input class="fi" type="number" id="u-keypasses" placeholder="1.8" min="0" max="20" step="0.1" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Duels Won % ●●●●</label><input class="fi" type="number" id="u-duels" placeholder="52" min="0" max="100" oninput="liveRank()"></div>
+        </div>
+        <div class="frow f3">
+          <div class="fg"><label class="fl">Interceptions P90 ●●●</label><input class="fi" type="number" id="u-interceptions" placeholder="2.0" min="0" max="20" step="0.1" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Dribble Success % ●●●</label><input class="fi" type="number" id="u-dribble" placeholder="52" min="0" max="100" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Pressures Applied P90 ●●</label><input class="fi" type="number" id="u-pressures" placeholder="4.5" min="0" max="30" step="0.1" oninput="liveRank()"></div>
+        </div>
+      </div>
+
+      <!-- CAM STATS -->
+      <div id="stats-cam" style="display:none">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;color:var(--t3);text-transform:uppercase;margin:.9rem 0 .5rem">Attacking Midfielder Metrics (Primary)</div>
+        <div class="frow f3">
+          <div class="fg"><label class="fl">Key Passes P90 ●●●●●</label><input class="fi" type="number" id="u-keypasses" placeholder="2.5" min="0" max="20" step="0.1" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Prog. Passes P90 ●●●●</label><input class="fi" type="number" id="u-progpasses" placeholder="5.5" min="0" max="20" step="0.1" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Dribble Success % ●●●●</label><input class="fi" type="number" id="u-dribble" placeholder="58" min="0" max="100" oninput="liveRank()"></div>
+        </div>
+        <div class="frow f3">
+          <div class="fg"><label class="fl">Chances Created P90 ●●●</label><input class="fi" type="number" id="u-chancescreated" placeholder="1.8" min="0" max="15" step="0.1" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Pressures Applied P90 ●●</label><input class="fi" type="number" id="u-pressures" placeholder="3.5" min="0" max="30" step="0.1" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Duels Won % ●●</label><input class="fi" type="number" id="u-duels" placeholder="44" min="0" max="100" oninput="liveRank()"></div>
+        </div>
+      </div>
+
+      <!-- WINGER STATS -->
+      <div id="stats-wing" style="display:none">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;color:var(--t3);text-transform:uppercase;margin:.9rem 0 .5rem">Winger Metrics (Primary)</div>
+        <div class="frow f3">
+          <div class="fg"><label class="fl">Dribble Success % ●●●●●</label><input class="fi" type="number" id="u-dribble" placeholder="58" min="0" max="100" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Key Passes P90 ●●●●</label><input class="fi" type="number" id="u-keypasses" placeholder="2.0" min="0" max="20" step="0.1" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Prog. Carries P90 ●●●●</label><input class="fi" type="number" id="u-progcarries" placeholder="4.5" min="0" max="20" step="0.1" oninput="liveRank()"></div>
+        </div>
+        <div class="frow f3">
+          <div class="fg"><label class="fl">Crosses Acc % ●●●</label><input class="fi" type="number" id="u-crosses" placeholder="28" min="0" max="100" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Chances Created P90 ●●●</label><input class="fi" type="number" id="u-chancescreated" placeholder="1.5" min="0" max="15" step="0.1" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Sprint Distance P90 km ●●</label><input class="fi" type="number" id="u-sprintdist" placeholder="1.2" min="0" max="5" step="0.1" oninput="liveRank()"></div>
+        </div>
+      </div>
+
+      <!-- ST / CF STATS -->
+      <div id="stats-st" style="display:none">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;color:var(--t3);text-transform:uppercase;margin:.9rem 0 .5rem">Striker Metrics (Primary)</div>
+        <div class="frow f3">
+          <div class="fg"><label class="fl">Goals P90 ●●●●●</label><input class="fi" type="number" id="u-goalsp90" placeholder="0.45" min="0" max="5" step="0.01" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">xG Performance (G-xG) ●●●●●</label><input class="fi" type="number" id="u-xgperf" placeholder="1.5" min="-15" max="15" step="0.1" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Shots on Target % ●●●●</label><input class="fi" type="number" id="u-sot" placeholder="42" min="0" max="100" oninput="liveRank()"></div>
+        </div>
+        <div class="frow f3">
+          <div class="fg"><label class="fl">Key Passes P90 ●●●</label><input class="fi" type="number" id="u-keypasses" placeholder="1.2" min="0" max="20" step="0.1" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Press Intensity % ●●</label><input class="fi" type="number" id="u-pressuresuccess" placeholder="22" min="0" max="100" oninput="liveRank()"></div>
+          <div class="fg"><label class="fl">Dribble Success % ●●</label><input class="fi" type="number" id="u-dribble" placeholder="48" min="0" max="100" oninput="liveRank()"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="fblock">
+      <div class="fblock-title">Physical Attributes (Self-Rated)</div>
+      <div class="frow f3">
+        <div class="fg"><label class="fl">Speed (1–10)</label><input class="fi" type="number" id="u-speed" placeholder="7" min="1" max="10" oninput="liveRank()"></div>
+        <div class="fg"><label class="fl">Stamina (1–10)</label><input class="fi" type="number" id="u-stamina" placeholder="8" min="1" max="10" oninput="liveRank()"></div>
+        <div class="fg"><label class="fl">Weight</label><input class="fi" id="u-weight" placeholder="165 lbs or 75kg"></div>
+      </div>
+      <div style="background:rgba(255,200,64,0.06);border:1px solid rgba(255,200,64,0.2);border-radius:8px;padding:.75rem 1rem;margin-top:.6rem">
+        <div style="font-size:.72rem;color:var(--gold);font-weight:600">&#9432; Self-Reported Stats Disclaimer</div>
+        <div style="font-size:.68rem;color:var(--soft);margin-top:.2rem;line-height:1.5">All statistics submitted are self-reported. ProPitch Scout does not independently verify player statistics. By submitting this form you certify that all information provided is accurate and truthful. False information may result in immediate removal from the platform without refund.</div>
+      </div>
+    </div>
+
+    <div class="fblock">
+      <div class="fblock-title">Terms &amp; Certification</div>
+      <div style="display:flex;flex-direction:column;gap:.6rem">
+        <label style="display:flex;align-items:flex-start;gap:.75rem;cursor:pointer">
+          <input type="checkbox" id="u-certify" style="margin-top:.2rem;accent-color:var(--accent)">
+          <span style="font-size:.78rem;color:var(--soft);line-height:1.5">I certify that all information and statistics I have provided are accurate and truthful to the best of my knowledge. I understand that false information may result in removal from the platform without refund.</span>
+        </label>
+        <label style="display:flex;align-items:flex-start;gap:.75rem;cursor:pointer">
+          <input type="checkbox" id="u-terms" style="margin-top:.2rem;accent-color:var(--accent)">
+          <span style="font-size:.78rem;color:var(--soft);line-height:1.5">I agree to the ProPitch Scout Terms of Service and understand that my profile is subject to admin review and approval before becoming visible to any scouts or clubs.</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="live-rank" id="lr-box">
+      <div class="lr-header"><div class="pulse"></div>Algorithm Preview — Final Tier Set by Admin</div>
+      <div class="lr-main">
+        <div><div class="lr-tier-big" id="lr-tier">—</div><div class="lr-score-txt" id="lr-score"></div></div>
+      </div>
+      <div class="lr-reasoning" id="lr-reasoning"></div>
+      <div class="lr-leagues" id="lr-leagues"></div>
+      <div class="lr-factors" id="lr-factors"></div>
+    </div>
+
+    <button class="submit-btn" onclick="submitPlayer()">Submit Profile & Pay →</button>
+    <p class="small-note">Admin review within 48hrs &middot; Profile hidden when subscription expires &middot; ID reviewed by ProPitch only &middot; Stats are self-reported</p>
+  </div>
+</div>
+
+<!-- ══════════════ ADMIN REVIEW ══════════════ -->
+<div class="page" id="page-admin">
+  <div class="admin-wrap">
+    <div class="admin-hdr">
+      <h2>⚙️ Admin Review Queue</h2>
+      <div class="role-tag role-admin">ADMIN MODE</div>
+    </div>
+    <p style="color:var(--soft);font-size:.83rem;margin-bottom:1.2rem;line-height:1.6">The algorithm below suggests a tier for each player based on experience, stats, and age curve. <b style="color:var(--text)">You have final say.</b> Override any tier before approving — the algorithm is a starting point, not the decision.</p>
+    <div class="admin-queue" id="admin-queue"></div>
+  </div>
+</div>
+
+<!-- ══════════════ MY STATUS ══════════════ -->
+<div class="page" id="page-status">
+  <div class="status-wrap">
+    <div id="st-noprofile" style="text-align:center;padding:4rem 2rem">
+      <div style="font-size:3rem;margin-bottom:1rem">⚽</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;margin-bottom:.5rem">No Profile Yet</div>
+      <div style="color:var(--muted);font-size:.85rem;margin-bottom:1.5rem">Submit your profile to start tracking scout interest.</div>
+      <button class="btn btn-p" onclick="gp('upload')">Upload Profile</button>
+    </div>
+    <div id="st-profile" style="display:none">
+      <div class="status-card">
+        <div class="st-head">
+          <div><div class="st-name" id="st-name">—</div><div class="st-sub" id="st-sub">—</div></div>
+          <div class="st-tier-block"><div class="st-tier-num" id="st-tnum">—</div><div class="st-tier-lbl">YOUR TIER</div></div>
+        </div>
+        <div class="st-sub-row">
+          <div class="sub-badge sub-on"><div class="sub-dot"></div>ACTIVE</div>
+          <div class="sub-exp" id="st-exp">—</div>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:.4rem">Visible To Leagues</div>
+        <div class="vis-leagues" id="st-leagues"></div>
+      </div>
+      <div class="status-card">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:.9rem">Scout Activity & Notifications</div>
+        <div class="notif-list" id="st-notifs"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ TIERS PAGE ══════════════ -->
+<div class="page" id="page-tiers">
+  <div class="tiers-wrap">
+    <h2>Tier Classification System</h2>
+    <p class="intro">Our algorithm provides an initial suggestion — the ProPitch admin team makes the final call. The key insight: <strong>the same stat line means different things at different ages.</strong> A 31-year-old with elite experience is a Tier 2 target; a 22-year-old with the same stats is a Tier 1 prospect.</p>
+
+    <div class="tier-row tr-t1"><div class="tr-head"><div class="tr-main"><div class="tr-badge" style="color:var(--t1)">TIER 1</div><div class="tr-name">MLS / Top Professional</div><div class="tr-desc">Elite domestic pros. MLS, top international, or significant national team experience. Strong stats at this level are expected.</div><div class="tr-age-note">⚡ Age window: Prime 20–28. A 29–31yr old needs elite stats to remain here. 32+ rarely placed T1 regardless of résumé.</div></div><div class="tr-score"><div class="tr-score-num" style="color:var(--t1)">80+</div><div class="tr-score-lbl">ALGO SCORE</div></div></div></div>
+
+    <div class="tier-row tr-t2"><div class="tr-head"><div class="tr-main"><div class="tr-badge" style="color:var(--t2)">TIER 2</div><div class="tr-name">USL Championship</div><div class="tr-desc">Second-division professionals. MLS-level experience but age-adjusted. Strong performers just outside MLS prime window.</div><div class="tr-age-note">⚡ Age insight: A 31–34yr old MLS vet often lands here. A 24yr old USL standout may be elevated to T1 by admin based on upside.</div></div><div class="tr-score"><div class="tr-score-num" style="color:var(--t2)">65–79</div><div class="tr-score-lbl">ALGO SCORE</div></div></div></div>
+
+    <div class="tier-row tr-t3"><div class="tr-head"><div class="tr-main"><div class="tr-badge" style="color:var(--t3)">TIER 3</div><div class="tr-name">USL League 1 / NISA</div><div class="tr-desc">Third-division pros and strong pre-pros. Often college standouts or players ascending from amateur leagues.</div><div class="tr-age-note">⚡ Age insight: Young players (18–22) with high stats are flagged as upside targets. Older players with T3 stats stay T3–4.</div></div><div class="tr-score"><div class="tr-score-num" style="color:var(--t3)">50–64</div><div class="tr-score-lbl">ALGO SCORE</div></div></div></div>
+
+    <div class="tier-row tr-t4"><div class="tr-head"><div class="tr-main"><div class="tr-badge" style="color:var(--t4)">TIER 4</div><div class="tr-name">USL League 2 / NPSL</div><div class="tr-desc">Highest quality amateur/semi-pro. Key development ground. Generates real professional talent consistently.</div><div class="tr-age-note">⚡ Age insight: Youth players (U21) here are tracked as long-term investments by T2–3 clubs.</div></div><div class="tr-score"><div class="tr-score-num" style="color:var(--t4)">35–49</div><div class="tr-score-lbl">ALGO SCORE</div></div></div></div>
+
+    <div class="tier-row tr-t5"><div class="tr-head"><div class="tr-main"><div class="tr-badge" style="color:var(--t5)">TIER 5</div><div class="tr-name">MISL / Youth / Development</div><div class="tr-desc">Indoor specialists, academy players, emerging youth. Age and trajectory are the primary scouting factors here.</div><div class="tr-age-note">⚡ Age insight: A 16–19yr old in T5 with elite raw stats may be admin-bumped to T4 purely on potential.</div></div><div class="tr-score"><div class="tr-score-num" style="color:var(--t5)">&lt;35</div><div class="tr-score-lbl">ALGO SCORE</div></div></div></div>
+
+    <h3 style="font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;margin:2rem 0 .5rem">Algorithm Scoring Weights</h3>
+    <div class="algo-factors-grid">
+      <div class="af-card"><div class="af-label">Experience Level</div><div class="af-pct">30%</div><div class="af-desc">Highest competition level played — maps directly to tier baseline</div></div>
+      <div class="af-card"><div class="af-label">Performance Stats</div><div class="af-pct">28%</div><div class="af-desc">Goals, assists, pass acc., aerial duels, dribble success per appearance</div></div>
+      <div class="af-card"><div class="af-label">Age × Experience Curve</div><div class="af-pct">22%</div><div class="af-desc">The most nuanced factor — peak bonus at 21–27, steep decline 30+, upside bonus for youth</div></div>
+      <div class="af-card"><div class="af-label">Physical Attributes</div><div class="af-pct">12%</div><div class="af-desc">Self-rated speed + stamina — admin can adjust based on video or fitness testing</div></div>
+      <div class="af-card"><div class="af-label">Intl. Caps & Tenure</div><div class="af-pct">8%</div><div class="af-desc">International appearances and years of structured play add prestige points</div></div>
+    </div>
+
+    <div class="age-curve-box">
+      <h4>The Age Curve — How Age Affects Tier Scoring</h4>
+      <div class="age-row"><div class="age-range">16–18</div><div class="age-bar-wrap"><div class="age-bar" style="width:55%;background:var(--t5)"></div></div><div class="age-note" style="color:var(--t5)">Youth upside bonus</div></div>
+      <div class="age-row"><div class="age-range">19–21</div><div class="age-bar-wrap"><div class="age-bar" style="width:78%;background:var(--t3)"></div></div><div class="age-note" style="color:var(--t3)">Rising prospect window</div></div>
+      <div class="age-row"><div class="age-range">22–27</div><div class="age-bar-wrap"><div class="age-bar" style="width:100%;background:var(--t1)"></div></div><div class="age-note" style="color:var(--t1)">Peak — full multiplier</div></div>
+      <div class="age-row"><div class="age-range">28–29</div><div class="age-bar-wrap"><div class="age-bar" style="width:82%;background:var(--t2)"></div></div><div class="age-note" style="color:var(--t2)">Slight decline begins</div></div>
+      <div class="age-row"><div class="age-range">30–31</div><div class="age-bar-wrap"><div class="age-bar" style="width:62%;background:var(--t3)"></div></div><div class="age-note" style="color:var(--t3)">MLS → USL adjustment</div></div>
+      <div class="age-row"><div class="age-range">32–34</div><div class="age-bar-wrap"><div class="age-bar" style="width:40%;background:var(--t4)"></div></div><div class="age-note" style="color:var(--t4)">Experience vs. market</div></div>
+      <div class="age-row"><div class="age-range">35+</div><div class="age-bar-wrap"><div class="age-bar" style="width:22%;background:var(--t5)"></div></div><div class="age-note" style="color:var(--t5)">Specialist / veteran</div></div>
+      <p style="font-size:.73rem;color:var(--muted);margin-top:.8rem;font-family:'JetBrains Mono',monospace">Note: The age curve alone never overrides elite credentials. A 32yr old with 50+ MLS apps and strong recent stats will still score well — admin reviews the full picture.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ AGENT PORTAL ══════════════ -->
+<div class="page" id="page-agent">
+  <div style="max-width:1100px;margin:0 auto;padding:2rem 1.5rem">
+
+    <!-- AGENT HEADER -->
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2rem">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:3px;color:#3ddc84;text-transform:uppercase;margin-bottom:.4rem">Licensed Agent Dashboard</div>
+        <h2 style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;margin:0">Agent Portal</h2>
+        <p style="color:var(--soft);font-size:.85rem;margin:.4rem 0 0">Manage your clients, track team interest, and submit player profiles on behalf of represented players.</p>
+      </div>
+      <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+        <div style="background:var(--lift);border:1px solid var(--border-hi);border-radius:10px;padding:.75rem 1.2rem;text-align:center;min-width:90px">
+          <div style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:#3ddc84" id="ag-client-count">0</div>
+          <div style="font-size:.68rem;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase">Clients</div>
+        </div>
+        <div style="background:var(--lift);border:1px solid var(--border-hi);border-radius:10px;padding:.75rem 1.2rem;text-align:center;min-width:90px">
+          <div style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:var(--accent)" id="ag-interest-count">0</div>
+          <div style="font-size:.68rem;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase">Team Interest</div>
+        </div>
+        <div style="background:var(--lift);border:1px solid var(--border-hi);border-radius:10px;padding:.75rem 1.2rem;text-align:center;min-width:90px">
+          <div style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:var(--gold)" id="ag-tier1-count">0</div>
+          <div style="font-size:.68rem;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase">T1/T2 Clients</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AGENT VERIFIED BADGE -->
+    <div style="background:linear-gradient(135deg,rgba(61,220,132,0.08),rgba(0,212,255,0.05));border:1px solid rgba(61,220,132,0.25);border-radius:12px;padding:1rem 1.4rem;margin-bottom:2rem;display:flex;align-items:center;gap:1rem">
+      <div style="font-size:1.6rem">&#9989;</div>
+      <div>
+        <div style="font-weight:700;font-size:.9rem;color:#3ddc84">Verified Licensed Agent</div>
+        <div style="font-size:.76rem;color:var(--soft);margin-top:.15rem">Your agent badge appears on all client profiles. Scouts see "Represented by Verified Agent" — this increases credibility and contact rate for your clients.</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:1.5rem">
+
+      <!-- LEFT: CLIENT ROSTER -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:2px;color:var(--soft);text-transform:uppercase">Client Roster</div>
+          <button onclick="gp('upload')" style="background:rgba(61,220,132,0.1);border:1px solid rgba(61,220,132,0.3);color:#3ddc84;font-family:'DM Sans',sans-serif;font-size:.75rem;padding:.3rem .85rem;border-radius:6px;cursor:pointer">+ Submit New Client</button>
+        </div>
+        <div id="agent-roster"></div>
+      </div>
+
+      <!-- RIGHT: ACTIVITY FEED & TOOLS -->
+      <div style="display:flex;flex-direction:column;gap:1rem">
+
+        <!-- INTEREST ALERTS -->
+        <div style="background:var(--lift);border:1px solid var(--border-hi);border-radius:12px;padding:1.2rem">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:.9rem">Team Interest Alerts</div>
+          <div id="agent-alerts">
+            <div style="color:var(--muted);font-size:.78rem;text-align:center;padding:1rem">No interest alerts yet. When a scout marks interest in one of your clients, it appears here.</div>
+          </div>
+        </div>
+
+        <!-- QUICK STATS -->
+        <div style="background:var(--lift);border:1px solid var(--border-hi);border-radius:12px;padding:1.2rem">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;color:var(--soft);text-transform:uppercase;margin-bottom:.9rem">Roster Breakdown</div>
+          <div id="agent-breakdown"></div>
+        </div>
+
+        <!-- AGENT TOOLS -->
+        <div style="background:var(--lift);border:1px solid var(--border-hi);border-radius:12px;padding:1.2rem">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:2px;color:var(--soft);text-transform:uppercase;margin-bottom:.9rem">Agent Tools</div>
+          <div style="display:flex;flex-direction:column;gap:.5rem">
+            <button onclick="agentExport()" style="background:var(--card);border:1px solid var(--border-hi);color:var(--text);font-family:'DM Sans',sans-serif;font-size:.78rem;padding:.55rem 1rem;border-radius:7px;cursor:pointer;text-align:left">&#128196; Export Client Report PDF</button>
+            <button onclick="agentBroadcast()" style="background:var(--card);border:1px solid var(--border-hi);color:var(--text);font-family:'DM Sans',sans-serif;font-size:.78rem;padding:.55rem 1rem;border-radius:7px;cursor:pointer;text-align:left">&#128232; Broadcast Availability to Scouts</button>
+            <button onclick="gp('scout')" style="background:var(--card);border:1px solid var(--border-hi);color:var(--text);font-family:'DM Sans',sans-serif;font-size:.78rem;padding:.55rem 1rem;border-radius:7px;cursor:pointer;text-align:left">&#128269; Browse All Players (Scout View)</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="closeModal(event)">
+  <div class="modal"><div class="m-stripe" id="m-stripe"></div><button class="m-close" onclick="closeModal()">✕</button><div class="m-body" id="m-body"></div></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONSTANTS ──
+var TC={1:'#ffd700',2:'#00cfff',3:'#ff7043',4:'#ab82ff',5:'#ff6bae'};
+var TN={1:'Tier 1 · MLS/Next Pro',2:'Tier 2 · USL Champ',3:'Tier 3 · USL L1',4:'Tier 4 · USL L2/NPSL',5:'Tier 5 · Dev'};
+var TFull={1:'MLS / MLS Next Pro',2:'USL Championship',3:'USL League 1 / NISA',4:'USL League 2 / NPSL',5:'MISL / Youth / Dev'};
+var ALL_LEAGUES=['MLS','MLS Next Pro','USL Championship','USL L1/NISA','USL L2/NPSL','MISL'];
+var LEAGUES_BY_TIER={1:['MLS','MLS Next Pro','USL Championship'],2:['MLS Next Pro','USL Championship','USL L1/NISA','MISL'],3:['USL Championship','USL L1/NISA','USL L2/NPSL','MISL'],4:['USL L1/NISA','USL L2/NPSL','MISL'],5:['USL L2/NPSL','MISL']};
+var PG={GK:'GK',CB:'DEF',LB:'DEF',RB:'DEF',CDM:'CDM',CM:'CM',CAM:'CAM',LW:'WING',RW:'WING',ST:'ST',CF:'ST'};
+var POS_GROUP_LABEL={GK:'Goalkeeper',CB:'Centre Back',LB:'Left Back',RB:'Right Back',CDM:'Defensive Mid',CM:'Central Mid',CAM:'Attacking Mid',LW:'Left Winger',RW:'Right Winger',ST:'Striker',CF:'Centre Forward'};
+
+function getPosGroup(p){ return PG[p]||'CM'; }
+
+// ── FORM HELPERS ──
+function gv(id){ var el=document.getElementById(id); return el?el.value:''; }
+function gn(id,def){ var v=parseInt(gv(id)); return isNaN(v)?(def||0):v; }
+function gf(id,def){ var v=parseFloat(gv(id)); return isNaN(v)?(def||0):v; }
+
+function updateStatFields(){
+  var pos=gv('u-pos'), group=getPosGroup(pos);
+  var panels=['gk','def','cdm','cm','cam','wing','st'];
+  for(var i=0;i<panels.length;i++){
+    var el=document.getElementById('stats-'+panels[i]);
+    if(el) el.style.display='none';
+  }
+  var show={GK:'gk',DEF:'def',CDM:'cdm',CM:'cm',CAM:'cam',WING:'wing',ST:'st'};
+  if(show[group]){ var el2=document.getElementById('stats-'+show[group]); if(el2) el2.style.display='block'; }
+  updateVerifContact();
+  liveRank();
+}
+
+function updateVisaFields(){
+  var v=gv('u-visa');
+  var note=document.getElementById('visa-note');
+  if(note) note.style.display=(v==='needsvisa'||v==='student')?'block':'none';
+  liveRank();
+}
+
+function updateContractFields(){
+  var v=gv('u-contract');
+  var ew=document.getElementById('contract-expiry-wrap');
+  var sw=document.getElementById('contract-salary-wrap');
+  if(ew) ew.style.display=(v==='undercontract')?'block':'none';
+  if(sw) sw.style.display=(v==='undercontract'||v==='freeagent'||v==='outofcontract')?'block':'none';
+}
+
+function updateCharCount(el){
+  var c=document.getElementById('statement-count');
+  if(c) c.textContent=el.value.length;
+}
+
+function updateVerifContact(){
+  var level=gn('u-level',0);
+  var block=document.getElementById('verif-contact-block');
+  if(block) block.style.display=(level>=3&&level>0)?'block':'none';
+}
+
+function gateLookingFor(tier){
+  var sel=document.getElementById('u-lookingfor');
+  var note=document.getElementById('lookingfor-note');
+  if(!sel) return;
+  var locked=[];
+  if(tier>=3) locked.push('fullpro');
+  if(tier>=4) locked.push('nextpro');
+  for(var i=0;i<sel.options.length;i++){
+    var v=sel.options[i].value;
+    var isLocked=locked.indexOf(v)>=0;
+    sel.options[i].disabled=isLocked;
+    sel.options[i].text=sel.options[i].text.replace(' (not available at your tier)','');
+    if(isLocked) sel.options[i].text+=' (not available at your tier)';
+  }
+  if(sel.value && locked.indexOf(sel.value)>=0){
+    sel.value='';
+    if(note){ note.style.display='block'; note.textContent='Some options unavailable at your current ProScore ('+TN[tier]+').'; }
+  } else {
+    if(note) note.style.display='none';
+  }
+}
+
+// ── ALGORITHM ──
+function n(v,def){ return (v===undefined||v===null||isNaN(parseFloat(v)))?(def||0):parseFloat(v); }
+function pct(v,def){ return n(v,def)/100; }
+function p90norm(v,max,def){ return Math.min(n(v,def)/max,1); }
+
+function calcPerf(p){
+  var group=getPosGroup(p.pos||'CM');
+  var apps=Math.max(n(p.apps,1),1);
+  var perf=0;
+
+  if(group==='GK'){
+    perf=pct(p.saves,68)*30 + pct(p.cleansheets,30)*24 + Math.min(Math.max((n(p.goalsprevented,0)+10)/20,0),1)*20 + pct(p.distrib,65)*16 + p90norm(p.sweeper,4,1.2)*6 + pct(p.highclaims,72)*4;
+  } else if(group==='DEF'){
+    var ga=Math.min(((n(p.goals,0)+n(p.assists,0))/apps)*5,3);
+    perf=pct(p.duels,58)*22 + pct(p.aerialdef||p.aerial,58)*20 + p90norm(p.interceptions,8,3)*18 + p90norm(p.clearances,10,4)*16 + pct(p.tackles,55)*12 + p90norm(p.progpasses,10,3)*6 + pct(p.pressuresuccess,28)*4 + pct(p.dribble,40)*2 + ga;
+  } else if(group==='CDM'){
+    var ga2=Math.min(((n(p.goals,0)+n(p.assists,0))/apps)*3,2);
+    perf=pct(p.duels,55)*24 + p90norm(p.interceptions,8,3)*22 + pct(p.tackles,52)*18 + p90norm(p.progpasses,10,4)*14 + p90norm(p.pressures,20,5.5)*8 + pct(p.pressuresuccess,28)*6 + pct(p.pass,78)*4 + p90norm(p.sprintdist,3,0.9)*2 + ga2 + pct(p.sot,28)*1;
+  } else if(group==='CM'){
+    var ga3=Math.min(((n(p.goals,0)+n(p.assists,0))/apps)*10,4);
+    perf=p90norm(p.progpasses,12,5)*20 + p90norm(p.keypasses,6,1.8)*18 + pct(p.duels,52)*16 + pct(p.pass,78)*14 + p90norm(p.interceptions,6,2)*12 + pct(p.dribble,52)*10 + p90norm(p.pressures,15,4.5)*6 + ga3;
+  } else if(group==='CAM'){
+    var ga4=Math.min(((n(p.goals,0)+n(p.assists,0))/apps)*18,12);
+    perf=p90norm(p.keypasses,8,2.5)*24 + p90norm(p.progpasses,14,5.5)*20 + pct(p.dribble,58)*16 + p90norm(p.chancescreated,6,1.8)*14 + ga4 + pct(p.pass,78)*8 + p90norm(p.pressures,12,3.5)*4 + pct(p.duels,44)*2;
+  } else if(group==='WING'){
+    var ga5=Math.min(((n(p.goals,0)+n(p.assists,0))/apps)*18,14);
+    perf=pct(p.dribble,58)*22 + p90norm(p.keypasses,6,2)*18 + p90norm(p.progcarries,12,4.5)*16 + p90norm(p.chancescreated,5,1.5)*14 + ga5 + pct(p.crosses,28)*8 + p90norm(p.sprintdist,3,1.2)*6 + pct(p.pass,72)*2;
+  } else {
+    var gp2=Math.min(n(p.goalsp90,n(p.goals,0)/apps)/1.0,1)*28;
+    var xgp=Math.min(Math.max((n(p.xgperf,0)+10)/20,0),1)*22;
+    perf=gp2 + xgp + pct(p.sot,42)*18 + p90norm(p.keypasses,4,1.2)*12 + pct(p.aerial,52)*8 + pct(p.pressuresuccess,22)*6 + pct(p.dribble,48)*6;
+  }
+  return Math.min(Math.max(perf,0),100);
+}
+
+function calcScore(p){
+  var age=n(p.age,22), level=parseInt(p.level)||5;
+  var expMap={1:100,2:78,3:55,4:32,5:12};
+  var expRaw=expMap[level]||12;
+  var perfRaw=calcPerf(p);
+
+  var ageMod;
+  if      (age<=18) ageMod=62;
+  else if (age<=21) ageMod=80;
+  else if (age<=27) ageMod=100;
+  else if (age<=29) ageMod=85;
+  else if (age<=31) ageMod=65;
+  else if (age<=33) ageMod=45;
+  else if (age<=36) ageMod=28;
+  else              ageMod=15;
+
+  var isElite=(level===1 && n(p.caps,0)>=8 && n(p.years,0)>=8 && perfRaw>=55);
+  if(isElite && ageMod<75) ageMod=Math.min(ageMod+30,85);
+
+  var nation=p.nation||'';
+  var isYoungIntl=(age<=22 && nation && nation.toLowerCase()!=='usa' && nation.toLowerCase()!=='united states' && level<=3 && perfRaw>=45);
+  if(isYoungIntl) ageMod=Math.min(ageMod+15,95);
+
+  var visaPenalty=0;
+  if((p.visa==='needsvisa'||p.visa==='student') && level>=3) visaPenalty=5;
+
+  var physRaw=((n(p.speed,6)+n(p.stamina,7))/2)/10*100;
+  var intlRaw=Math.min(Math.min(n(p.caps,0)*6,55)+Math.min(n(p.years,0)*5,45),100);
+
+  return Math.round(Math.min(Math.max(expRaw*0.30+perfRaw*0.28+ageMod*0.22+physRaw*0.12+intlRaw*0.08-visaPenalty,0),100));
+}
+
+function scoreToTier(s){ return s>=80?1:s>=65?2:s>=50?3:s>=35?4:5; }
+
+function buildReasoning(p){
+  var age=n(p.age,22), level=parseInt(p.level)||5;
+  var group=getPosGroup(p.pos||'CM');
+  var score=calcScore(p), tier=scoreToTier(score);
+  var lines=[];
+  var posDesc={
+    GK:'Goalkeepers scored on save%, clean sheets, goals prevented vs xG, and distribution. Goals/assists are irrelevant.',
+    DEF:'Defenders: aerial and ground duels weighted most heavily, followed by interceptions and clearances. Goals are minimal.',
+    CDM:'Defensive Midfielders: duels, interceptions, and tackles are primary. Progressive passing heavily weighted. Goals contribute less than 2%.',
+    CM:'Central Midfielders: progressive passing and key passes lead, balanced with defensive duels and interceptions.',
+    CAM:'Attacking Midfielders: key passes, progressive passes, and chances created dominate. Goals and assists add significant weight.',
+    WING:'Wingers: dribble success, progressive carries, and chances created primary. Goal contributions capped at 14pts.',
+    ST:'Strikers: goals per 90 and xG performance weighted most heavily. Shot quality and press intensity also factor.'
+  };
+  if(posDesc[group]) lines.push('<b>Scoring model:</b> '+posDesc[group]);
+  if(age>=30&&level<=2) lines.push('<b>Age adjustment:</b> At '+age+', past peak MLS window. Strong experience weighted down by age curve.');
+  else if(age<=21&&score>=50) lines.push('<b>Youth upside flag:</b> At '+age+', stats exceed age-group norms. Admin may bump 1 tier for trajectory.');
+  else if(age>=22&&age<=27) lines.push('<b>Peak window ('+age+'):</b> Full age multiplier applied.');
+  if(level===1&&n(p.caps,0)>=8) lines.push('<b>Elite clause:</b> '+p.caps+' intl caps + top-level experience reduces age penalty.');
+  var nation=p.nation||'';
+  var isYoungIntlR=(age<=22&&nation&&nation.toLowerCase()!=='usa'&&level<=3);
+  if(isYoungIntlR&&tier<=2) lines.push('<b>Young international:</b> Age '+age+' foreign player — development bonus applied. MLS Next Pro / affiliate pathway realistic. Visa sponsorship available at this level.');
+  if(tier===1&&age<=22) lines.push('<b>MLS Next Pro pathway:</b> At '+age+', profiles as MLS Next Pro / development candidate. Clubs evaluate for affiliate squad.');
+  else if(tier===1&&age<=27) lines.push('<b>MLS First Team profile:</b> Age and stats align with first-team MLS consideration.');
+  if(p.visa==='needsvisa'||p.visa==='student') lines.push('<b>Visa required:</b> Player needs work authorization. USL L2/NPSL unlikely to sponsor. MLS/USL Championship may consider for strong profiles.');
+  if(p.contract==='freeagent') lines.push('<b>Free agent — available immediately.</b>');
+  else if(p.contract==='undercontract') lines.push('<b>Under contract</b> — transfer or release required before signing.');
+  if(!lines.length) lines.push('Standard scoring applied. ProScore <b>'+score+'</b> maps to <b>'+TFull[tier]+'</b>.');
+  return lines.join(' ');
+}
+
+// ── DATA ──
+var players=[], savedSet={}, interestSet={}, msgs={};
+var myProfile=null, selectedPlan='1yr';
+var tierFilter='all', posFilter='all';
+var roles=['scout','player','admin','agent'], roleIdx=0;
+var pendingNotifs=[];
+
+var seed=[
+  {first:'Houssou',last:'Landry',age:25,pos:'CDM',foot:'Right',years:7,club:'Charleston Battery',level:2,caps:0,nation:'Cote dIvoire',visa:'workpermit',contract:'undercontract',lookingfor:'fullpro',
+   goals:6,assists:6,apps:153,pass:83,aerial:62,aerialdef:62,duels:64,interceptions:3.2,tackles:58,progpasses:4.1,pressures:5.8,pressuresuccess:30,dribble:52,sprintdist:0.9,sot:18,
+   speed:8,stamina:9,bio:'153 USL Championship apps. Elite pressure absorption (95th percentile SkillCorner). MLS interest confirmed.',video:'https://youtube.com',daysAgo:1},
+  {first:'Marcus',last:'Reyes',age:24,pos:'ST',foot:'Right',years:6,club:'FC Dallas',level:1,caps:3,nation:'USA',visa:'citizen',contract:'freeagent',lookingfor:'fullpro',
+   goals:18,assists:7,apps:30,pass:78,aerial:55,sot:52,goalsp90:0.60,xgperf:2.1,keypasses:1.2,pressuresuccess:28,dribble:55,speed:9,stamina:8,bio:'3 MLS seasons, rising striker.',daysAgo:2},
+  {first:'Lionel',last:'Santos',age:36,pos:'CAM',foot:'Left',years:18,club:'Inter Miami',level:1,caps:91,nation:'Argentina',visa:'workpermit',contract:'freeagent',lookingfor:'fullpro',
+   goals:8,assists:16,apps:24,pass:93,keypasses:4.2,progpasses:7.1,dribble:80,chancescreated:3.1,pressures:3.0,duels:48,speed:7,stamina:7,bio:'World-class playmaker. 18 pro seasons, 91 caps.',daysAgo:1},
+  {first:'Jordan',last:'Shaw',age:32,pos:'CB',foot:'Right',years:13,club:'New England Rev.',level:1,caps:0,nation:'USA',visa:'citizen',contract:'freeagent',lookingfor:'fullpro',
+   goals:2,assists:4,apps:31,pass:85,aerial:77,aerialdef:77,duels:68,interceptions:3.5,clearances:5.2,tackles:62,progpasses:2.8,pressuresuccess:24,dribble:35,speed:6,stamina:8,bio:'12-year MLS veteran CB.',daysAgo:4},
+  {first:'Luca',last:'Moretti',age:21,pos:'CM',foot:'Both',years:5,club:'Louisville City',level:2,caps:0,nation:'Italy',visa:'needsvisa',contract:'freeagent',lookingfor:'nextpro',
+   goals:6,assists:9,apps:25,pass:82,duels:55,interceptions:2.1,progpasses:5.2,keypasses:1.9,dribble:62,pressures:4.8,speed:8,stamina:8,bio:'Italian youth international.',daysAgo:1},
+  {first:'Dani',last:'Brooks',age:25,pos:'LW',foot:'Left',years:7,club:'Sacramento Rep.',level:2,caps:1,nation:'Jamaica',visa:'workpermit',contract:'freeagent',lookingfor:'fullpro',
+   goals:9,assists:11,apps:28,pass:80,dribble:74,keypasses:2.3,progcarries:5.1,chancescreated:1.8,crosses:32,sprintdist:1.3,speed:9,stamina:7,bio:'Jamaican cap, electric winger.',daysAgo:2},
+  {first:'Tyler',last:'Nguyen',age:20,pos:'GK',foot:'Right',years:4,club:'FC Cincinnati II',level:2,caps:0,nation:'USA',visa:'citizen',contract:'freeagent',lookingfor:'nextpro',
+   goals:0,assists:0,apps:22,pass:72,saves:74,cleansheets:38,goalsprevented:2.1,distrib:70,sweeper:1.4,highclaims:78,speed:6,stamina:8,bio:'9 clean sheets last season.',daysAgo:5},
+  {first:'Amara',last:'Diallo',age:22,pos:'RB',foot:'Right',years:4,club:'Chattanooga FC',level:3,caps:0,nation:'Ghana',visa:'needsvisa',contract:'freeagent',lookingfor:'semipro',
+   goals:1,assists:5,apps:20,pass:75,aerial:55,aerialdef:55,duels:60,interceptions:2.4,clearances:2.8,tackles:54,progpasses:3.2,pressuresuccess:26,dribble:52,speed:8,stamina:8,
+   bio:'Dynamic attacking fullback. Ghanaian U23 call-up.',verifName:'Coach James Harris',verifPhone:'555-0100',daysAgo:3},
+  {first:'Kofi',last:'Mensah',age:19,pos:'LW',foot:'Left',years:3,club:'Asante Kotoko SC',level:3,caps:0,nation:'Ghana',visa:'needsvisa',contract:'freeagent',lookingfor:'nextpro',
+   goals:11,assists:7,apps:24,pass:74,dribble:78,keypasses:1.9,progcarries:5.8,chancescreated:1.6,crosses:26,sprintdist:1.4,speed:9,stamina:8,
+   bio:'19yr old Ghanaian winger. Top scorer Asante Kotoko U21. Seeking MLS Next Pro pathway.',verifName:'Emmanuel Osei — Academy Director',verifPhone:'233-302-555-0192',daysAgo:1},
+  {first:'Sam',last:'Wheeler',age:27,pos:'CF',foot:'Right',years:7,club:'Detroit City FC',level:3,caps:0,nation:'USA',visa:'citizen',contract:'freeagent',lookingfor:'semipro',
+   goals:13,assists:5,apps:26,pass:72,aerial:58,sot:50,goalsp90:0.50,xgperf:1.2,keypasses:1.4,pressuresuccess:22,dribble:52,speed:7,stamina:8,bio:'NPSL Golden Boot 2023.',daysAgo:4},
+  {first:'Marco',last:'Devereaux',age:31,pos:'ST',foot:'Right',years:12,club:'Nashville SC',level:1,caps:4,nation:'USA',visa:'citizen',contract:'freeagent',lookingfor:'fullpro',
+   goals:14,assists:6,apps:28,pass:74,aerial:62,sot:48,goalsp90:0.50,xgperf:0.8,keypasses:1.1,pressuresuccess:20,dribble:50,speed:7,stamina:7,bio:'Experienced MLS striker, 12 seasons.',daysAgo:3}
+];
+
+function uid(){ return Math.random().toString(36).slice(2); }
+
+function init(){
+  players=seed.map(function(p){
+    var s=calcScore(p), obj={};
+    for(var k in p) obj[k]=p[k];
+    obj.score=s; obj.tier=scoreToTier(s); obj.adminTier=scoreToTier(s); obj.approved=true; obj.id=uid();
+    return obj;
+  });
+  refresh();
+}
+
+function refresh(){
+  updateSidebarCounts(); renderGrid(); updateHomeCount(); buildReport(); renderAdminQueue();
+  var dtEl=document.getElementById('rpt-dt'); if(dtEl) dtEl.textContent=weekLabel();
+}
+
+function weekLabel(){
+  var d=new Date(), s=new Date(d); s.setDate(d.getDate()-7);
+  return s.toLocaleDateString('en',{month:'short',day:'numeric'})+' - '+d.toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'});
+}
+
+function updateSidebarCounts(){
+  var ap=players.filter(function(p){return p.approved;});
+  var el=document.getElementById('sc-all'); if(el) el.textContent=ap.length;
+  for(var t=1;t<=5;t++){var e=document.getElementById('sc-'+t);if(e)e.textContent=ap.filter(function(p){return p.adminTier===t;}).length;}
+  var sv=document.getElementById('sc-saved');if(sv)sv.textContent=Object.keys(savedSet).length;
+  var si=document.getElementById('sc-interest');if(si)si.textContent=Object.keys(interestSet).length;
+}
+function updateHomeCount(){var el=document.getElementById('home-cnt');if(el)el.textContent=players.filter(function(p){return p.approved;}).length;}
+function buildReport(){
+  var nw=players.filter(function(p){return p.approved&&p.daysAgo<=7;});
+  var ne=document.getElementById('rpt-new');if(ne)ne.textContent=nw.length;
+  var pc={};nw.forEach(function(p){pc[p.pos]=(pc[p.pos]||0)+1;});
+  var pcA=Object.keys(pc).map(function(k){return[k,pc[k]];}).sort(function(a,b){return b[1]-a[1];});
+  var pe=document.getElementById('rpt-pos');if(pe)pe.textContent=pcA.length?pcA[0][0]:'-';
+  var tc={};nw.forEach(function(p){tc[p.adminTier]=(tc[p.adminTier]||0)+1;});
+  var tcA=Object.keys(tc).map(function(k){return[k,tc[k]];}).sort(function(a,b){return b[1]-a[1];});
+  var te=document.getElementById('rpt-tier');if(te)te.textContent=tcA.length?'T'+tcA[0][0]:'-';
+}
+
+function setTF(v,btn){
+  tierFilter=v;
+  var btns=document.querySelectorAll('.sidebar .sb-btn');
+  for(var i=0;i<btns.length;i++) btns[i].classList.remove('on');
+  btn.classList.add('on'); renderGrid();
+}
+function setPF(v,btn){
+  posFilter=v;
+  var grp=document.querySelectorAll('.sb-group')[1].querySelectorAll('.sb-btn');
+  for(var i=0;i<grp.length;i++) grp[i].classList.remove('on');
+  btn.classList.add('on'); renderGrid();
+}
+
+function renderGrid(){
+  var srchEl=document.querySelector('.scout-main input');
+  var srch=srchEl?srchEl.value.toLowerCase():'';
+  var ap=players.filter(function(p){return p.approved;});
+  var list=ap.filter(function(p){
+    var t=p.adminTier;
+    if(tierFilter==='saved'&&!savedSet[p.id]) return false;
+    if(tierFilter==='interest'&&!interestSet[p.id]) return false;
+    if(typeof tierFilter==='number'&&t!==tierFilter) return false;
+    if(posFilter!=='all'&&getPosGroup(p.pos)!==posFilter) return false;
+    if(srch&&(p.first+' '+p.last+' '+p.club+' '+p.nation).toLowerCase().indexOf(srch)<0) return false;
+    return true;
+  });
+  var ce=document.getElementById('grid-count');if(ce)ce.textContent=list.length+' player'+(list.length!==1?'s':'');
+  var g=document.getElementById('scout-grid');if(!g)return;
+  var html='';
+  for(var i=0;i<list.length;i++){
+    var p=list[i],t=p.adminTier,ov=(p.adminTier!==p.tier);
+    var sv2=savedSet[p.id],it=interestSet[p.id],group=getPosGroup(p.pos),pl=POS_GROUP_LABEL[p.pos]||p.pos;
+    html+='<div class="pcard" onclick="openModal(\''+p.id+'\')">';
+    html+='<div class="pcard-stripe s-t'+t+'"></div>';
+    html+='<div class="pcard-body">';
+    html+='<div class="pcard-top"><div class="avatar a-t'+t+'">'+p.first[0]+p.last[0]+'</div>';
+    html+='<div style="text-align:right"><div class="tier-pill p-t'+t+'">'+TN[t]+'</div>';
+    if(ov) html+='<div class="admin-override-badge">Admin Override</div>';
+    html+='</div></div>';
+    html+='<div class="pcard-name">'+p.first+' '+p.last+'</div>';
+    html+='<div class="pcard-meta">'+pl+' &middot; '+p.age+'yr &middot; '+p.nation+'</div>';
+    html+='<div class="pcard-meta" style="margin-top:.08rem;opacity:.7">'+p.club+'</div>';
+    // Mini badges
+    var badges='';
+    if(p.visa==='needsvisa') badges+='<span style="font-size:.55rem;padding:.1rem .3rem;border-radius:3px;background:rgba(255,200,64,0.15);color:var(--gold)">VISA REQ</span>';
+    if(p.visa==='citizen'||p.visa==='greencard') badges+='<span style="font-size:.55rem;padding:.1rem .3rem;border-radius:3px;background:rgba(61,220,132,0.12);color:#3ddc84">NO VISA</span>';
+    if(p.contract==='freeagent') badges+='<span style="font-size:.55rem;padding:.1rem .3rem;border-radius:3px;background:rgba(0,212,255,0.12);color:var(--accent)">FREE AGENT</span>';
+    if(p.collegeelig==='yes') badges+='<span style="font-size:.55rem;padding:.1rem .3rem;border-radius:3px;background:rgba(171,130,255,0.12);color:var(--t4)">COL ELIG</span>';
+    if(p.video) badges+='<span style="font-size:.55rem;padding:.1rem .3rem;border-radius:3px;background:rgba(61,220,132,0.12);color:#3ddc84">&#9654; VIDEO</span>';
+    if(badges) html+='<div style="margin-top:.3rem;display:flex;flex-wrap:wrap;gap:.25rem">'+badges+'</div>';
+    html+='<div class="pcard-stats">';
+    if(group==='GK'){
+      html+='<div class="pcs"><div class="pcs-v">'+(p.saves||'—')+'%</div><div class="pcs-l">Save%</div></div>';
+      html+='<div class="pcs"><div class="pcs-v">'+(p.cleansheets||'—')+'%</div><div class="pcs-l">CS%</div></div>';
+      html+='<div class="pcs"><div class="pcs-v">'+p.apps+'</div><div class="pcs-l">Apps</div></div>';
+    }else if(group==='DEF'){
+      html+='<div class="pcs"><div class="pcs-v">'+(p.duels||'—')+'%</div><div class="pcs-l">Duels</div></div>';
+      html+='<div class="pcs"><div class="pcs-v">'+(p.interceptions||'—')+'/g</div><div class="pcs-l">Interc.</div></div>';
+      html+='<div class="pcs"><div class="pcs-v">'+p.apps+'</div><div class="pcs-l">Apps</div></div>';
+    }else if(group==='CDM'){
+      html+='<div class="pcs"><div class="pcs-v">'+(p.duels||'—')+'%</div><div class="pcs-l">Duels</div></div>';
+      html+='<div class="pcs"><div class="pcs-v">'+(p.interceptions||'—')+'/g</div><div class="pcs-l">Interc.</div></div>';
+      html+='<div class="pcs"><div class="pcs-v">'+(p.progpasses||'—')+'/g</div><div class="pcs-l">Prog.P</div></div>';
+    }else if(group==='CM'||group==='CAM'){
+      html+='<div class="pcs"><div class="pcs-v">'+(p.progpasses||'—')+'/g</div><div class="pcs-l">Prog.P</div></div>';
+      html+='<div class="pcs"><div class="pcs-v">'+p.goals+'G '+(p.assists||0)+'A</div><div class="pcs-l">G+A</div></div>';
+      html+='<div class="pcs"><div class="pcs-v">'+p.apps+'</div><div class="pcs-l">Apps</div></div>';
+    }else if(group==='WING'){
+      html+='<div class="pcs"><div class="pcs-v">'+(p.dribble||'—')+'%</div><div class="pcs-l">Dribble</div></div>';
+      html+='<div class="pcs"><div class="pcs-v">'+p.goals+'G '+(p.assists||0)+'A</div><div class="pcs-l">G+A</div></div>';
+      html+='<div class="pcs"><div class="pcs-v">'+p.apps+'</div><div class="pcs-l">Apps</div></div>';
+    }else{
+      html+='<div class="pcs"><div class="pcs-v">'+p.goals+'</div><div class="pcs-l">Goals</div></div>';
+      html+='<div class="pcs"><div class="pcs-v">'+(p.sot||'—')+'%</div><div class="pcs-l">SoT%</div></div>';
+      html+='<div class="pcs"><div class="pcs-v">'+p.apps+'</div><div class="pcs-l">Apps</div></div>';
+    }
+    html+='</div>';
+    html+='<div class="score-row"><span class="score-lbl">ProScore</span><span class="score-val">'+p.score+'/100</span></div>';
+    html+='<div class="score-track"><div class="score-fill sf-t'+t+'" style="width:'+p.score+'%"></div></div>';
+    html+='</div>';
+    html+='<div class="pcard-foot">';
+    html+='<button class="foot-btn '+(sv2?'saved':'')+'" onclick="event.stopPropagation();toggleSave(\''+p.id+'\',this)">'+(sv2?'Saved':'Save')+'</button>';
+    html+='<button class="foot-btn '+(it?'interested':'')+'" onclick="event.stopPropagation();markInterest(\''+p.id+'\',this,\''+p.first+' '+p.last+'\')">'+(it?'Interested':'Mark Interest')+'</button>';
+    html+='</div></div>';
+  }
+  g.innerHTML=html;
+}
+
+function toggleSave(id,btn){
+  if(savedSet[id]){delete savedSet[id];btn.textContent='Save';btn.classList.remove('saved');}
+  else{savedSet[id]=true;btn.textContent='Saved';btn.classList.add('saved');}
+  updateSidebarCounts();
+}
+function markInterest(id,btn,name){
+  if(!interestSet[id]){
+    interestSet[id]=true;btn.textContent='Interested';btn.classList.add('interested');
+    pendingNotifs.push({name:name});
+    toast('Interest marked for '+name+'. Player notified in a few days.','info');
+    updateSidebarCounts();
+  }
+}
+
+function buildModalBars(p){
+  var group=getPosGroup(p.pos||'CM'),col=TC[p.adminTier];
+  var bars=[];
+  if(group==='GK') bars=[{l:'Save %',v:p.saves||68},{l:'Clean Sheet %',v:p.cleansheets||30},{l:'Distribution',v:p.distrib||65},{l:'High Claims %',v:p.highclaims||72},{l:'Pass Acc',v:p.pass||70}];
+  else if(group==='DEF') bars=[{l:'Duels Won %',v:p.duels||58},{l:'Aerial Duels %',v:p.aerialdef||p.aerial||55},{l:'Tackles Won %',v:p.tackles||54},{l:'Pass Acc %',v:p.pass||75},{l:'Interc/g x10',v:Math.min(Math.round((p.interceptions||3)*10),100)},{l:'Clear/g x5',v:Math.min(Math.round((p.clearances||4)*5),100)}];
+  else if(group==='CDM') bars=[{l:'Duels Won %',v:p.duels||55},{l:'Interc x10',v:Math.min(Math.round((p.interceptions||3)*10),100)},{l:'Tackles Won %',v:p.tackles||52},{l:'Prog Pass x10',v:Math.min(Math.round((p.progpasses||4)*10),100)},{l:'Pressures x5',v:Math.min(Math.round((p.pressures||5)*5),100)},{l:'Pass Acc %',v:p.pass||78}];
+  else if(group==='CM') bars=[{l:'Prog Pass x8',v:Math.min(Math.round((p.progpasses||5)*8),100)},{l:'Key Pass x12',v:Math.min(Math.round((p.keypasses||2)*12),100)},{l:'Duels Won %',v:p.duels||52},{l:'Pass Acc %',v:p.pass||78},{l:'Interc x10',v:Math.min(Math.round((p.interceptions||2)*10),100)},{l:'Dribble %',v:p.dribble||52}];
+  else if(group==='CAM') bars=[{l:'Key Pass x12',v:Math.min(Math.round((p.keypasses||2.5)*12),100)},{l:'Prog Pass x7',v:Math.min(Math.round((p.progpasses||5.5)*7),100)},{l:'Dribble %',v:p.dribble||58},{l:'Chances x14',v:Math.min(Math.round((p.chancescreated||1.8)*14),100)},{l:'Pass Acc %',v:p.pass||78},{l:'Duels Won %',v:p.duels||44}];
+  else if(group==='WING') bars=[{l:'Dribble %',v:p.dribble||58},{l:'Key Pass x12',v:Math.min(Math.round((p.keypasses||2)*12),100)},{l:'Prog Carries x8',v:Math.min(Math.round((p.progcarries||4.5)*8),100)},{l:'Chances x14',v:Math.min(Math.round((p.chancescreated||1.5)*14),100)},{l:'Crosses Acc %',v:p.crosses||28},{l:'Sprint x25',v:Math.min(Math.round((p.sprintdist||1.2)*25),100)}];
+  else bars=[{l:'Goals/App x50',v:Math.min(Math.round(n(p.goals,0)/Math.max(p.apps,1)*50),100)},{l:'SoT %',v:p.sot||42},{l:'xG Perf',v:Math.round((n(p.xgperf,0)+10)/20*100)},{l:'Key Pass x15',v:Math.min(Math.round((p.keypasses||1.2)*15),100)},{l:'Aerial %',v:p.aerial||52},{l:'Dribble %',v:p.dribble||48}];
+  var html='';
+  for(var b=0;b<bars.length;b++){
+    var v=Math.min(Math.max(bars[b].v,0),100);
+    html+='<div class="mbar"><div class="mbar-l">'+bars[b].l+'</div><div class="mbar-track"><div class="mbar-fill" style="width:'+v+'%;background:'+col+'"></div></div><div class="mbar-v" style="color:'+col+'">'+bars[b].v+'</div></div>';
+  }
+  return html;
+}
+
+function openModal(id){
+  var p=null; for(var i=0;i<players.length;i++){if(players[i].id===id){p=players[i];break;}} if(!p)return;
+  var t=p.adminTier,col=TC[t],ov=(p.adminTier!==p.tier),pl=POS_GROUP_LABEL[p.pos]||p.pos;
+  document.getElementById('m-stripe').style.cssText='background:'+col+';box-shadow:0 0 16px '+col+'40';
+  var thread='';
+  if(msgs[id]){for(var m=0;m<msgs[id].length;m++){thread+='<div class="msg-item"><div class="msg-from">'+msgs[id][m].from+' &middot; '+msgs[id][m].time+'</div><div class="msg-bubble msg-from-team">'+msgs[id][m].text+'</div></div>';}}
+  var leaguesHtml='';
+  for(var lg=0;lg<ALL_LEAGUES.length;lg++){var vis=LEAGUES_BY_TIER[t].indexOf(ALL_LEAGUES[lg])>=0;leaguesHtml+='<span class="ml-tag '+(vis?'ml-y':'ml-n')+'">'+ALL_LEAGUES[lg]+'</span>';}
+  var intBtn=interestSet[id]?'Interested':'Mark Interest',intCls=interestSet[id]?'on':'';
+  var lookingMap={fullpro:'Full Pro Contract',semipro:'Part-time/Semi-Pro',trial:'Trial',nextpro:'MLS Next Pro',l2npsl:'USL L2/NPSL',indoor:'Indoor/MISL',open:'Open to All'};
+  var html='';
+  html+='<div class="m-head"><div class="m-avatar a-t'+t+'">'+p.first[0]+p.last[0]+'</div>';
+  html+='<div><div class="m-name">'+p.first+' '+p.last+'</div>';
+  html+='<div class="m-sub">'+pl+' ('+p.pos+') &middot; '+p.age+'yr &middot; '+p.nation+' &middot; '+p.club+'</div>';
+  if(p.bio) html+='<div style="font-size:.74rem;color:var(--soft);margin-top:.2rem">'+p.bio+'</div>';
+  if(p.video) html+='<a href="'+p.video+'" target="_blank" style="display:inline-flex;align-items:center;gap:.35rem;margin-top:.4rem;font-size:.72rem;color:var(--accent);text-decoration:none;background:var(--accent-glow);padding:.2rem .6rem;border-radius:4px">&#9654; Watch Highlight Video</a>';
+  // Badges
+  html+='<div style="display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.5rem">';
+  if(p.visa==='citizen'||p.visa==='greencard') html+='<span style="font-size:.62rem;padding:.15rem .45rem;border-radius:4px;background:rgba(61,220,132,0.1);color:#3ddc84;border:1px solid rgba(61,220,132,0.25)">&#10003; No Visa Required</span>';
+  if(p.visa==='workpermit') html+='<span style="font-size:.62rem;padding:.15rem .45rem;border-radius:4px;background:rgba(0,212,255,0.08);color:var(--accent);border:1px solid rgba(0,212,255,0.2)">Work Visa — Can Sign Now</span>';
+  if(p.visa==='needsvisa') html+='<span style="font-size:.62rem;padding:.15rem .45rem;border-radius:4px;background:rgba(255,200,64,0.1);color:var(--gold);border:1px solid rgba(255,200,64,0.25)">&#9888; Visa Sponsorship Required</span>';
+  if(p.contract==='freeagent') html+='<span style="font-size:.62rem;padding:.15rem .45rem;border-radius:4px;background:rgba(0,212,255,0.1);color:var(--accent);border:1px solid rgba(0,212,255,0.2)">Free Agent</span>';
+  if(p.contract==='undercontract') html+='<span style="font-size:.62rem;padding:.15rem .45rem;border-radius:4px;background:rgba(255,255,255,0.04);color:var(--soft);border:1px solid var(--border-hi)">Under Contract</span>';
+  if(p.lookingfor) html+='<span style="font-size:.62rem;padding:.15rem .45rem;border-radius:4px;background:rgba(255,255,255,0.04);color:var(--soft);border:1px solid var(--border-hi)">Seeking: '+(lookingMap[p.lookingfor]||p.lookingfor)+'</span>';
+  if(p.language&&p.language!=='English') html+='<span style="font-size:.62rem;padding:.15rem .45rem;border-radius:4px;background:rgba(255,255,255,0.04);color:var(--soft);border:1px solid var(--border-hi)">'+p.language+'</span>';
+  if(p.collegeelig==='yes') html+='<span style="font-size:.62rem;padding:.15rem .45rem;border-radius:4px;background:rgba(171,130,255,0.1);color:var(--t4);border:1px solid rgba(171,130,255,0.25)">College Eligible</span>';
+  html+='</div>';
+  if(p.statement) html+='<div style="font-size:.75rem;color:var(--soft);margin-top:.5rem;font-style:italic;border-left:2px solid var(--border-hi);padding-left:.6rem">'+p.statement+'</div>';
+  html+='<div style="font-size:.6rem;color:var(--muted);margin-top:.4rem;font-family:\'JetBrains Mono\',monospace">&#9432; Stats are self-reported. ProPitch admin reviewed.</div>';
+  html+='</div></div>';
+  html+='<div class="m-stats"><div class="m-stat"><div class="m-stat-v" style="color:'+col+'">'+p.score+'</div><div class="m-stat-l">ProScore</div></div><div class="m-stat"><div class="m-stat-v">'+p.apps+'</div><div class="m-stat-l">Apps</div></div><div class="m-stat"><div class="m-stat-v">'+p.goals+'G '+(p.assists||0)+'A</div><div class="m-stat-l">G+A</div></div></div>';
+  html+='<div class="mbars">'+buildModalBars(p)+'</div>';
+  html+='<div class="m-vis-block"><div class="m-vis-lbl">Visible To'+(ov?' <span style="color:var(--gold);font-size:.55rem">&middot; Admin Override</span>':'')+'</div><div class="m-leagues">'+leaguesHtml+'</div></div>';
+  html+='<div class="m-algo-box">'+buildReasoning(p)+'</div>';
+  html+='<div class="msg-thread '+(thread?'show':'')+'" id="mt-'+id+'">'+(thread||'<div style="color:var(--muted);font-size:.76rem;text-align:center;padding:.4rem">No messages yet</div>')+'</div>';
+  html+='<div class="msg-row"><input class="msg-input" id="mi-'+id+'" placeholder="Message this player..."><button class="msg-send" onclick="sendMsg(\''+id+'\',\''+p.first+' '+p.last+'\')">Send</button></div>';
+  html+='<div class="m-actions"><button class="m-btn m-btn-interest '+intCls+'" onclick="markInterest(\''+id+'\',this,\''+p.first+' '+p.last+'\')">'+intBtn+'</button><button class="m-btn m-btn-copy" onclick="copyPortal(\''+p.first+' '+p.last+'\')">Copy to My Portal</button></div>';
+  document.getElementById('m-body').innerHTML=html;
+  document.getElementById('overlay').classList.add('open');
+}
+
+function sendMsg(pid,name){
+  var inp=document.getElementById('mi-'+pid),text=inp.value.trim();if(!text)return;
+  if(!msgs[pid])msgs[pid]=[];
+  msgs[pid].push({from:'Scout Portal',time:new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'}),text:text});
+  var th=document.getElementById('mt-'+pid);th.classList.add('show');
+  var html='';for(var m=0;m<msgs[pid].length;m++){html+='<div class="msg-item"><div class="msg-from">'+msgs[pid][m].from+' &middot; '+msgs[pid][m].time+'</div><div class="msg-bubble msg-from-team">'+msgs[pid][m].text+'</div></div>';}
+  th.innerHTML=html;inp.value='';th.scrollTop=th.scrollHeight;toast('Message sent to '+name,'info');
+}
+function copyPortal(name){toast(name+' copied to your portal.','info');}
+function closeModal(e){if(!e||e.target===document.getElementById('overlay'))document.getElementById('overlay').classList.remove('open');}
+
+function renderAdminQueue(){
+  var html='',levelNames=['','MLS/Next Pro','USL Champ','USL L1','USL L2/NPSL','Youth/College'];
+  var lookingMap={fullpro:'Full Pro',semipro:'Semi-Pro',trial:'Trial',nextpro:'MLS Next Pro',l2npsl:'USL L2/NPSL',indoor:'Indoor',open:'Open'};
+  var visaMap={citizen:'US Citizen',greencard:'Green Card',workpermit:'Work Visa OK',needsvisa:'VISA REQ',daca:'DACA',student:'Student Visa'};
+  for(var i=0;i<players.length;i++){
+    var p=players[i],algoT=p.tier,col=TC[algoT],curT=p.adminTier||algoT,pl=POS_GROUP_LABEL[p.pos]||p.pos;
+    var visaFlag=(p.visa==='needsvisa'||p.visa==='student')?' <span style="color:var(--gold)">&#9888; VISA REQ</span>':'';
+    var contractTxt=p.contract?({freeagent:'FREE AGENT',undercontract:'UNDER CONTRACT',outofcontract:'OUT OF CONTRACT',trial:'SEEKING TRIAL'}[p.contract]||p.contract):'';
+    var lookingTxt=p.lookingfor?(lookingMap[p.lookingfor]||p.lookingfor):'';
+    var verifFlag=p.verifName?'<span style="color:#3ddc84">&#10003; VERIF: '+p.verifName+'</span>':(parseInt(p.level)>=3?'<span style="color:var(--t3)">&#9888; NO VERIF CONTACT</span>':'');
+    html+='<div class="aq-card">';
+    html+='<div class="aq-top">';
+    html+='<div class="aq-avatar" style="background:'+col+'">'+p.first[0]+p.last[0]+'</div>';
+    html+='<div class="aq-info">';
+    html+='<div class="aq-name">'+p.first+' '+p.last+' <span style="font-size:.75rem;color:var(--muted);font-weight:400">&middot; '+p.age+'yr &middot; '+pl+' &middot; '+p.nation+'</span></div>';
+    html+='<div class="aq-meta">'+p.club+' &middot; '+levelNames[p.level]+' &middot; '+p.apps+' apps &middot; '+p.goals+'G '+(p.assists||0)+'A &middot; ProScore '+p.score;
+    if(contractTxt) html+=' &middot; '+contractTxt;
+    if(lookingTxt) html+=' &middot; Seeking: '+lookingTxt;
+    html+=visaFlag+' '+verifFlag+'</div></div>';
+    html+='<div class="aq-algo-tier"><div class="aq-algo-label">Algo says</div><div class="aq-algo-val" style="color:'+col+'">T'+algoT+'</div></div>';
+    html+='<div class="aq-actions">';
+    html+='<select class="aq-select" id="aq-sel-'+p.id+'" onchange="previewOverride(\''+p.id+'\',this.value)">';
+    var tL={1:'Tier 1 (MLS/Next Pro)',2:'Tier 2 (USL Champ)',3:'Tier 3 (USL L1)',4:'Tier 4 (USL L2)',5:'Tier 5 (Dev)'};
+    for(var t=1;t<=5;t++) html+='<option value="'+t+'"'+(curT===t?' selected':'')+'>Override -> '+tL[t]+'</option>';
+    html+='</select>';
+    html+='<button class="aq-approve-btn" onclick="approvePlayer(\''+p.id+'\')">'+(p.approved?'Approved':'Approve & Publish')+'</button>';
+    html+='</div></div>';
+    html+='<button class="aq-expand-btn" onclick="toggleDetail(\''+p.id+'\')">View algorithm reasoning & full stats</button>';
+    html+='<div class="aq-detail" id="aqd-'+p.id+'">';
+    html+='<div class="aq-detail-grid">';
+    var sf=[['Apps',p.apps],['Goals',p.goals],['Assists',p.assists||0],['Pass Acc',(p.pass||'—')+'%'],['Duels Won',p.duels?(p.duels+'%'):'—'],['Interc/g',p.interceptions?p.interceptions:'—'],['Tackles',p.tackles?(p.tackles+'%'):'—'],['Prog Pass/g',p.progpasses?p.progpasses:'—'],['Save %',p.saves?(p.saves+'%'):'—'],['SoT %',p.sot?(p.sot+'%'):'—'],['Intl Caps',p.caps||0],['Years Pro',p.years||0],['Visa Status',visaMap[p.visa]||'—'],['Contract',contractTxt||'—'],['Looking For',lookingTxt||'—'],['Language',p.language||'English'],['Video',p.video?'Yes':'No']];
+    for(var s2=0;s2<sf.length;s2++) html+='<div class="aq-dstat"><div class="aq-dstat-l">'+sf[s2][0]+'</div><div class="aq-dstat-v">'+sf[s2][1]+'</div></div>';
+    if(p.verifName) html+='<div class="aq-dstat" style="grid-column:1/-1;background:rgba(61,220,132,0.06);border:1px solid rgba(61,220,132,0.2);border-radius:6px;padding:.5rem"><div class="aq-dstat-l">Verif. Contact</div><div class="aq-dstat-v" style="color:#3ddc84">'+p.verifName+(p.verifPhone?' &middot; '+p.verifPhone:'')+'</div></div>';
+    if(p.statement) html+='<div class="aq-dstat" style="grid-column:1/-1"><div class="aq-dstat-l">Player Statement</div><div class="aq-dstat-v" style="font-style:italic;color:var(--soft)">'+p.statement+'</div></div>';
+    html+='</div>';
+    html+='<div class="algo-reasoning-box">'+buildReasoning(p)+'</div>';
+    html+='</div></div>';
+  }
+  document.getElementById('admin-queue').innerHTML=html;
+}
+
+function toggleDetail(id){document.getElementById('aqd-'+id).classList.toggle('open');}
+function previewOverride(id,val){for(var i=0;i<players.length;i++){if(players[i].id===id){players[i].adminTier=parseInt(val);break;}}}
+function approvePlayer(id){
+  var p=null;for(var i=0;i<players.length;i++){if(players[i].id===id){p=players[i];break;}}if(!p)return;
+  p.adminTier=parseInt(document.getElementById('aq-sel-'+id).value);p.approved=true;
+  toast(p.first+' '+p.last+' approved as '+TFull[p.adminTier],'ok');refresh();
+}
+
+function selPlan(v){selectedPlan=v;document.getElementById('pc-3mo').classList.toggle('sel',v==='3mo');document.getElementById('pc-1yr').classList.toggle('sel',v==='1yr');}
+function fakeUp(t){if(t==='hs'){document.getElementById('hs-ico').textContent='Done';document.getElementById('hs-txt').innerHTML='<b>headshot.jpg</b><br>Uploaded';}else{document.getElementById('id-ico').textContent='Done';document.getElementById('id-txt').innerHTML='<b>id_document.jpg</b><br>Uploaded';}toast('File uploaded','ok');}
+
+function liveRank(){
+  var level=gn('u-level',0);
+  if(!level){document.getElementById('lr-box').classList.remove('show');return;}
+  var pos=gv('u-pos')||'CM';
+  var p={
+    level:level,pos:pos,age:gn('u-age',22),years:gn('u-years',0),caps:gn('u-caps',0),
+    nation:gv('u-nation'),visa:gv('u-visa'),contract:gv('u-contract'),
+    goals:gn('u-goals',0),assists:gn('u-assists',0),apps:Math.max(gn('u-apps',1),1),
+    pass:gn('u-pass',78),aerial:gn('u-aerial',55),sot:gn('u-sot',38),
+    speed:gn('u-speed',6),stamina:gn('u-stamina',7),
+    saves:gn('u-saves',68),cleansheets:gn('u-cleansheets',32),goalsprevented:gf('u-goalsprevented',0),
+    distrib:gn('u-distrib',68),sweeper:gf('u-sweeper',1.2),highclaims:gn('u-highclaims',75),
+    duels:gn('u-duels',55),aerialdef:gn('u-aerialdef',58),interceptions:gf('u-interceptions',2),
+    clearances:gf('u-clearances',3),tackles:gn('u-tackles',52),progpasses:gf('u-progpasses',4),
+    pressures:gf('u-pressures',5),pressuresuccess:gn('u-pressuresuccess',28),
+    dribble:gn('u-dribble',50),sprintdist:gf('u-sprintdist',0.9),
+    keypasses:gf('u-keypasses',1.8),chancescreated:gf('u-chancescreated',1.5),
+    progcarries:gf('u-progcarries',4.5),crosses:gn('u-crosses',28),
+    goalsp90:gf('u-goalsp90',0),xgperf:gf('u-xgperf',0)
+  };
+  var score=calcScore(p),tier=scoreToTier(score),col=TC[tier];
+  document.getElementById('lr-tier').textContent=TN[tier];
+  document.getElementById('lr-tier').style.color=col;
+  document.getElementById('lr-score').textContent='ProScore '+score+'/100';
+  document.getElementById('lr-reasoning').innerHTML=buildReasoning(p);
+  var lgHtml='';
+  for(var i=0;i<ALL_LEAGUES.length;i++){var vis=LEAGUES_BY_TIER[tier].indexOf(ALL_LEAGUES[i])>=0;lgHtml+='<span class="lr-league '+(vis?'vis':'hid')+'">'+ALL_LEAGUES[i]+'</span>';}
+  document.getElementById('lr-leagues').innerHTML=lgHtml;
+  var ageStatus=p.age<=27?'Peak window':p.age<=31?'Adjusted (30+)':'Significant decline';
+  var expMap={1:100,2:78,3:55,4:32,5:12};
+  var fHtml='';
+  fHtml+='<div class="lr-factor">Experience Level <span>'+Math.round((expMap[p.level]||12)*0.30)+'/30</span></div>';
+  fHtml+='<div class="lr-factor">Position-Weighted Performance <span>'+Math.round(calcPerf(p)*0.28)+'/28</span></div>';
+  fHtml+='<div class="lr-factor">Age Curve <span>'+ageStatus+'</span></div>';
+  fHtml+='<div class="lr-factor">Physical Attributes <span>'+Math.round(((p.speed+p.stamina)/2/10)*0.12*100)+'/12</span></div>';
+  fHtml+='<div class="lr-factor">Intl Caps + Tenure <span>'+Math.round((Math.min(p.caps*6,55)+Math.min(p.years*5,45))/100*8)+'/8</span></div>';
+  document.getElementById('lr-factors').innerHTML=fHtml;
+  document.getElementById('lr-box').classList.add('show');
+  updateVerifContact();
+  gateLookingFor(tier);
+}
+
+function submitPlayer(){
+  var first=gv('u-first').trim(),last=gv('u-last').trim(),level=gn('u-level',0);
+  if(!first||!last||!level){toast('Please fill required fields (*)','info');return;}
+  var certEl=document.getElementById('u-certify'),termsEl=document.getElementById('u-terms');
+  if(!certEl||!certEl.checked||!termsEl||!termsEl.checked){toast('Please check both certification boxes to submit','info');return;}
+  var pos=gv('u-pos')||'CM';
+  var p={
+    first:first,last:last,level:level,pos:pos,age:gn('u-age',22),
+    nation:gv('u-nation')||'USA',nation2:gv('u-nation2'),language:gv('u-language'),
+    birthcountry:gv('u-birthcountry'),visa:gv('u-visa'),passport:gv('u-passport'),
+    prostatus:gv('u-prostatus'),collegeelig:gv('u-collegeelig'),
+    contract:gv('u-contract'),salary:gv('u-salary'),
+    lookingfor:gv('u-lookingfor'),statement:gv('u-statement'),available:gv('u-available'),
+    video:gv('u-video'),height:gv('u-height'),weight:gv('u-weight'),
+    verifName:gv('u-verif-name'),verifPhone:gv('u-verif-phone'),
+    verifEmail:gv('u-verif-email'),verifRel:gv('u-verif-rel'),
+    foot:gv('u-foot')||'Right',years:gn('u-years',0),
+    club:gv('u-club')||'Independent',caps:gn('u-caps',0),
+    goals:gn('u-goals',0),assists:gn('u-assists',0),apps:Math.max(gn('u-apps',1),1),
+    pass:gn('u-pass',78),aerial:gn('u-aerial',55),sot:gn('u-sot',38),
+    speed:gn('u-speed',6),stamina:gn('u-stamina',7),
+    saves:gn('u-saves',68),cleansheets:gn('u-cleansheets',32),goalsprevented:gf('u-goalsprevented',0),
+    distrib:gn('u-distrib',68),sweeper:gf('u-sweeper',1.2),highclaims:gn('u-highclaims',75),
+    duels:gn('u-duels',55),aerialdef:gn('u-aerialdef',58),interceptions:gf('u-interceptions',2),
+    clearances:gf('u-clearances',3),tackles:gn('u-tackles',52),progpasses:gf('u-progpasses',4),
+    pressures:gf('u-pressures',5),pressuresuccess:gn('u-pressuresuccess',28),
+    dribble:gn('u-dribble',50),sprintdist:gf('u-sprintdist',0.9),
+    keypasses:gf('u-keypasses',1.8),chancescreated:gf('u-chancescreated',1.5),
+    progcarries:gf('u-progcarries',4.5),crosses:gn('u-crosses',28),
+    goalsp90:gf('u-goalsp90',0),xgperf:gf('u-xgperf',0),
+    bio:gv('u-bio'),daysAgo:0,id:uid(),approved:false,adminTier:null
+  };
+  var s=calcScore(p);p.score=s;p.tier=scoreToTier(s);p.adminTier=p.tier;
+  players.unshift(p);
+  var months=selectedPlan==='1yr'?12:3,exp=new Date();exp.setMonth(exp.getMonth()+months);
+  myProfile={};for(var k in p)myProfile[k]=p[k];
+  myProfile.expDate=exp.toLocaleDateString('en',{month:'long',day:'numeric',year:'numeric'});
+  renderStatusPage();
+  toast('Profile submitted! Admin review within 48hrs. Algorithm suggests: '+TN[p.tier],'ok');
+  gp('admin');
+}
+
+function renderStatusPage(){
+  if(!myProfile){document.getElementById('st-noprofile').style.display='block';document.getElementById('st-profile').style.display='none';return;}
+  document.getElementById('st-noprofile').style.display='none';document.getElementById('st-profile').style.display='block';
+  var p=myProfile,t=p.adminTier,col=TC[t];
+  document.getElementById('st-name').textContent=p.first+' '+p.last;
+  document.getElementById('st-sub').textContent=(POS_GROUP_LABEL[p.pos]||p.pos)+' &middot; '+p.club+' &middot; '+p.nation;
+  document.getElementById('st-tnum').textContent=t;document.getElementById('st-tnum').style.color=col;
+  document.getElementById('st-exp').textContent='Expires: '+p.expDate;
+  var lgHtml='';
+  for(var i=0;i<ALL_LEAGUES.length;i++){var vis=LEAGUES_BY_TIER[t].indexOf(ALL_LEAGUES[i])>=0;lgHtml+='<span class="vl-pill '+(vis?'vis':'')+'">'+ALL_LEAGUES[i]+'</span>';}
+  document.getElementById('st-leagues').innerHTML=lgHtml;
+  var notifs=[
+    {icon:'check',ttl:'Profile submitted and pending review',desc:'Admin confirms tier within 48 hours. Algorithm suggestion: '+TFull[t]+'.',time:'Just now',isNew:true},
+    {icon:'card',ttl:'Subscription active ('+(selectedPlan==='1yr'?'Annual $4.99/mo':'3-Month $7.99/mo')+')',desc:'Profile visible until '+p.expDate+'.',time:'Just now',isNew:false}
+  ];
+  for(var ni=0;ni<pendingNotifs.length;ni++){notifs.push({icon:'star',ttl:'A professional club has shown interest',desc:'Full details follow in 3-5 days.',time:'Simulated',isNew:true});}
+  var emojiMap={check:'&#10003;',card:'&#128179;',star:'&#9889;'};
+  var nHtml='';
+  for(var i=0;i<notifs.length;i++){var n2=notifs[i];nHtml+='<div class="notif '+(n2.icon==='star'?'ni':'')+'"><div class="notif-icon">'+emojiMap[n2.icon]+'</div><div class="notif-body"><div class="notif-ttl">'+n2.ttl+'</div><div class="notif-desc">'+n2.desc+'</div><div class="notif-time">'+n2.time+'</div></div>'+(n2.isNew?'<div class="notif-new-tag">NEW</div>':'')+'</div>';}
+  document.getElementById('st-notifs').innerHTML=nHtml;
+}
+
+// ── AGENT PORTAL ──
+function getAgentClients(){return players.filter(function(p){return p.approved&&p.agentClient;});}
+
+function renderAgentPortal(){
+  var approved=players.filter(function(p){return p.approved;});
+  for(var i=0;i<Math.min(3,approved.length);i++){approved[i].agentClient=true;approved[i].agentVerified=true;}
+  var clients=getAgentClients();
+  var interested=clients.filter(function(p){return interestSet[p.id];});
+  var topTier=clients.filter(function(p){return p.adminTier<=2;});
+  var cc=document.getElementById('ag-client-count');if(cc)cc.textContent=clients.length;
+  var ic=document.getElementById('ag-interest-count');if(ic)ic.textContent=interested.length;
+  var tc=document.getElementById('ag-tier1-count');if(tc)tc.textContent=topTier.length;
+  renderAgentRoster(clients);renderAgentAlerts(interested);renderAgentBreakdown(clients);
+}
+
+function agentStatPill(label,val,col){return '<div style="flex:1;min-width:60px"><div style="font-size:.82rem;font-weight:700;color:'+col+'">'+val+'</div><div style="font-size:.62rem;color:var(--muted);font-family:\'JetBrains Mono\',monospace;letter-spacing:.5px">'+label+'</div></div>';}
+
+function renderAgentRoster(clients){
+  var el=document.getElementById('agent-roster');if(!el)return;
+  if(!clients.length){el.innerHTML='<div style="color:var(--muted);font-size:.82rem;text-align:center;padding:2rem">No clients yet.</div>';return;}
+  var html='';
+  var lookingMap={fullpro:'Full Pro',semipro:'Semi-Pro',trial:'Trial',nextpro:'MLS Next Pro',l2npsl:'USL L2/NPSL',indoor:'Indoor',open:'Open'};
+  for(var i=0;i<clients.length;i++){
+    var p=clients[i],t=p.adminTier,col=TC[t],group=getPosGroup(p.pos),pl=POS_GROUP_LABEL[p.pos]||p.pos;
+    var hasInterest=interestSet[p.id];
+    html+='<div style="background:var(--lift);border:1px solid '+(hasInterest?'rgba(61,220,132,0.4)':'var(--border-hi)')+';border-radius:12px;padding:1.1rem 1.3rem;margin-bottom:.85rem;cursor:pointer" onclick="openModal(\''+p.id+'\')">';
+    html+='<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem">';
+    html+='<div style="display:flex;align-items:center;gap:.85rem">';
+    html+='<div style="width:42px;height:42px;border-radius:50%;background:'+col+';display:flex;align-items:center;justify-content:center;font-family:\'Syne\',sans-serif;font-weight:800;font-size:.95rem;flex-shrink:0">'+p.first[0]+p.last[0]+'</div>';
+    html+='<div><div style="font-weight:700;font-size:.92rem">'+p.first+' '+p.last+' <span style="font-family:\'JetBrains Mono\',monospace;font-size:.52rem;background:rgba(61,220,132,0.1);color:#3ddc84;border:1px solid rgba(61,220,132,0.25);padding:.1rem .4rem;border-radius:4px">VERIFIED AGENT</span></div>';
+    html+='<div style="font-size:.76rem;color:var(--soft);margin-top:.15rem">'+pl+' &middot; '+p.age+'yr &middot; '+p.club+' &middot; '+p.nation+'</div>';
+    if(p.lookingfor) html+='<div style="font-size:.68rem;color:var(--muted);margin-top:.1rem">Seeking: '+(lookingMap[p.lookingfor]||p.lookingfor)+'</div>';
+    html+='</div></div>';
+    html+='<div style="text-align:right;flex-shrink:0"><div style="font-family:\'JetBrains Mono\',monospace;font-size:.58rem;color:'+col+'">'+TN[t]+'</div><div style="font-size:.7rem;color:var(--muted)">ProScore <span style="color:'+col+';font-weight:700">'+p.score+'</span></div>';
+    if(hasInterest) html+='<div style="font-size:.65rem;color:#3ddc84;margin-top:.2rem">&#9889; Team Interest</div>';
+    html+='</div></div>';
+    html+='<div style="display:flex;gap:1.2rem;margin-top:.85rem;padding-top:.75rem;border-top:1px solid var(--border)">';
+    if(group==='CDM'||group==='DEF'){html+=agentStatPill('Duels',(p.duels||'—')+'%',col);html+=agentStatPill('Interc/g',p.interceptions||'—',col);html+=agentStatPill('Prog.P/g',p.progpasses||'—',col);html+=agentStatPill('Apps',p.apps,col);}
+    else if(group==='GK'){html+=agentStatPill('Save %',(p.saves||'—')+'%',col);html+=agentStatPill('CS %',(p.cleansheets||'—')+'%',col);html+=agentStatPill('Apps',p.apps,col);}
+    else if(group==='WING'||group==='CAM'){html+=agentStatPill('Dribble',(p.dribble||'—')+'%',col);html+=agentStatPill('G+A',p.goals+'+'+(p.assists||0),col);html+=agentStatPill('Apps',p.apps,col);}
+    else{html+=agentStatPill('Goals',p.goals,col);html+=agentStatPill('Assists',p.assists||0,col);html+=agentStatPill('Apps',p.apps,col);}
+    html+='</div>';
+    html+='<div style="display:flex;gap:.5rem;margin-top:.75rem">';
+    html+='<button onclick="event.stopPropagation();openModal(\''+p.id+'\')" style="flex:1;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);color:var(--accent);font-family:\'DM Sans\',sans-serif;font-size:.72rem;padding:.35rem .7rem;border-radius:6px;cursor:pointer">View Full Profile</button>';
+    html+='<button onclick="event.stopPropagation();agentShare(\''+p.first+' '+p.last+'\')" style="background:var(--card);border:1px solid var(--border-hi);color:var(--soft);font-family:\'DM Sans\',sans-serif;font-size:.72rem;padding:.35rem .7rem;border-radius:6px;cursor:pointer">Share Profile</button>';
+    html+='</div></div>';
+  }
+  el.innerHTML=html;
+}
+
+function renderAgentAlerts(interested){
+  var el=document.getElementById('agent-alerts');if(!el)return;
+  if(!interested.length){el.innerHTML='<div style="color:var(--muted);font-size:.78rem;text-align:center;padding:.75rem">No interest alerts yet.</div>';return;}
+  var html='';
+  for(var i=0;i<interested.length;i++){
+    var p=interested[i],col=TC[p.adminTier];
+    html+='<div style="background:rgba(61,220,132,0.06);border:1px solid rgba(61,220,132,0.2);border-radius:8px;padding:.75rem;margin-bottom:.5rem">';
+    html+='<div style="display:flex;align-items:center;gap:.6rem"><div style="width:30px;height:30px;border-radius:50%;background:'+col+';display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.7rem">'+p.first[0]+p.last[0]+'</div>';
+    html+='<div><div style="font-size:.8rem;font-weight:600;color:#3ddc84">&#9889; Team Interest — '+p.first+' '+p.last+'</div><div style="font-size:.68rem;color:var(--muted);margin-top:.1rem">A professional club marked interest. Details sent in 3-5 days.</div></div></div></div>';
+  }
+  el.innerHTML=html;
+}
+
+function renderAgentBreakdown(clients){
+  var el=document.getElementById('agent-breakdown');if(!el)return;
+  if(!clients.length){el.innerHTML='<div style="color:var(--muted);font-size:.78rem">No clients yet.</div>';return;}
+  var byTier={1:0,2:0,3:0,4:0,5:0};
+  clients.forEach(function(p){byTier[p.adminTier]=(byTier[p.adminTier]||0)+1;});
+  var html='';
+  for(var t=1;t<=5;t++){
+    if(!byTier[t]) continue;
+    html+='<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.35rem"><div style="font-size:.7rem;color:'+TC[t]+';font-family:\'JetBrains Mono\',monospace;width:20px;font-weight:700">T'+t+'</div><div style="flex:1;height:6px;background:var(--card);border-radius:3px"><div style="width:'+Math.round(byTier[t]/clients.length*100)+'%;height:100%;background:'+TC[t]+';border-radius:3px"></div></div><div style="font-size:.7rem;color:var(--soft);width:20px;text-align:right">'+byTier[t]+'</div></div>';
+  }
+  el.innerHTML=html;
+}
+
+function agentShare(name){toast('Share link for '+name+' copied (demo)','info');}
+function agentExport(){toast('Client report export available with full backend','info');}
+function agentBroadcast(){var clients=getAgentClients();if(!clients.length){toast('No clients to broadcast','info');return;}toast('Broadcast sent for '+clients.length+' client(s)','ok');}
+
+function gp(name){
+  var pages=document.querySelectorAll('.page');for(var i=0;i<pages.length;i++)pages[i].classList.remove('on');
+  document.getElementById('page-'+name).classList.add('on');
+  var tabs=document.querySelectorAll('.ntab'),names=['home','scout','upload','admin','status','tiers','agent'];
+  for(var i=0;i<tabs.length;i++)tabs[i].classList.toggle('on',names[i]===name);
+  if(name==='scout')renderGrid();if(name==='status')renderStatusPage();if(name==='admin')renderAdminQueue();if(name==='agent')renderAgentPortal();
+}
+function cycleRole(){
+  roleIdx=(roleIdx+1)%4;var r=roles[roleIdx];
+  var badge=document.getElementById('role-badge');badge.textContent=r.toUpperCase()+' VIEW';badge.className='role-tag role-'+r;
+  if(r==='scout')gp('scout');else if(r==='player')gp('upload');else if(r==='admin')gp('admin');else gp('agent');
+}
+function toast(msg,type){
+  type=type||'ok';var t=document.getElementById('toast');t.textContent=msg;t.className='toast toast-'+type+' show';setTimeout(function(){t.classList.remove('show');},3500);
+}
+
+init();
+</script>
+</body>
+</html>
